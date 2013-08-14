@@ -1,0 +1,36 @@
+.flash {
+	margin-bottom: $baseLineHeight;
+}
+
+.flash .flash-item {
+	background-color: $gray;
+	padding: 12px 20px;
+	-webkit-border-radius: 5px;
+	-moz-border-radius: 5px;
+	border-radius: 5px;
+	margin-top: 20px;
+	color: $medium_gray;
+	position: relative;
+}
+
+.flash .flash-item .flash-close {
+	position: absolute;
+	top: 13px;
+	right: 15px;
+	color: $medium_gray;
+}
+
+/* Colors
+__________________________________________________________ */
+
+.flash-item.notice {
+	background-color: $lightest_blue;
+}
+
+.flash-item.warning {
+	background-color: $lightest_yellow;
+}
+
+.flash-item.error {
+	background-color: $lightest_red;
+}

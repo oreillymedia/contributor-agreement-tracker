@@ -1,0 +1,68 @@
+/* Container
+_________________________________________________________________ */
+
+.btn-group {
+  position: relative;
+  display: inline-block;
+  font-size: 0;
+  vertical-align: middle;
+  white-space: nowrap;
+}
+
+.btn-group + .btn-group {
+  margin-left: 5px;
+}
+
+/* Buttons
+_________________________________________________________________ */
+
+.btn-group > .btn {
+  position: relative;
+  @include border-radius(0);
+}
+
+.btn-group > .btn + .btn {
+  margin-left: -1px;
+}
+
+.btn-group > .btn,
+.btn-group > .dropdown-menu,
+.btn-group > .popover {
+  font-size: $baseFontSize;
+}
+
+.btn-group > .btn:first-child {
+  margin-left: 0;
+  @include border-top-left-radius($borderRadius);
+  @include border-bottom-left-radius($borderRadius);
+}
+
+.btn-group > .btn:last-child,
+.btn-group > .dropdown-toggle {
+  @include border-top-right-radius($borderRadius);
+  @include border-bottom-right-radius($borderRadius);
+}
+
+.btn-group > .btn.large:first-child {
+  margin-left: 0;
+  @include border-top-left-radius($borderRadiusLarge);
+  @include border-bottom-left-radius($borderRadiusLarge);
+}
+
+.btn-group > .btn.large:last-child,
+.btn-group > .large.dropdown-toggle {
+  @include border-top-right-radius($borderRadiusLarge);
+  @include border-bottom-right-radius($borderRadiusLarge);
+}
+
+.btn-group > .btn:hover,
+.btn-group > .btn:focus,
+.btn-group > .btn:active,
+.btn-group > .btn.active {
+  z-index: 2;
+}
+
+.btn-group .dropdown-toggle:active,
+.btn-group.open .dropdown-toggle {
+  outline: 0;
+}

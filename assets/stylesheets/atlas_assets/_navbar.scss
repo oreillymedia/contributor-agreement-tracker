@@ -1,0 +1,115 @@
+.navbar {
+  background-color: $red;
+  color: $white;
+  font-family: $menuFontFamily;
+  font-weight: 700;
+  font-size: 15px;
+  @include smooth();
+}
+
+.navbar:after {
+  clear: both;
+}
+
+.navbar a {
+  color: #FFF;
+  text-decoration: none;
+}
+
+.navbar-inner:before,
+.navbar-inner:after {
+  display: table;
+  line-height: 0;
+  content: "";
+}
+
+.navbar-inner:after {
+  clear: both;
+}
+
+/* Brand
+------------------------------------------------------------------ */
+
+.navbar .brand {
+  float: left;
+  display: block;
+  padding: 10px 20px 10px 20px;
+}
+
+/* .nav
+------------------------------------------------------------------ */
+
+.navbar .nav {
+  position: relative;
+  left: 0;
+  display: block;
+  float: left;
+  margin: 0 10px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.navbar .nav.pull-right {
+  float: right;
+  margin-right: 0;
+}
+
+.navbar .nav > li {
+  float: left;
+}
+
+.navbar .nav > li > a {
+  float: none;
+  display: block;
+  padding: 10px 20px 10px;
+}
+
+.navbar .nav > li:nth-child(even) > a,
+.navbar .nav > li > a:focus,
+.navbar .nav > li > a:hover {
+  background-color: #91323b;
+}
+
+.navbar .nav #profile-link {
+  font-size: 13px;
+}
+
+.navbar .nav #logout-link {
+  background-color: #91323b;
+  padding-left: 15px;
+  padding-right: 15px;
+}
+
+/* Menu input
+------------------------------------------------------------------ */
+
+.navbar form {
+  margin: 0;
+}
+
+.navbar .nav input[type="text"] {
+  background-color: $medium_red;
+  border: none;
+  font-family: Lato, Helvetica, sans-serif;
+  font-weight: 700;
+  font-size: 1em;
+  padding: 5px 10px 5px;
+  color: #FFF;
+  -webkit-font-smoothing: antialiased;
+  outline: none;
+  margin: 5px 5px 5px 0;
+}
+
+.navbar .nav input[type="text"] {
+  @include placeholder($white)
+}
+
+/* Focus */
+
+.navbar .nav input[type="text"]:focus {
+  background-color: rgb(199, 55, 70);
+}
+
+.navbar .nav input[type="text"]:focus {
+  @include placeholder($lighter_red)
+}

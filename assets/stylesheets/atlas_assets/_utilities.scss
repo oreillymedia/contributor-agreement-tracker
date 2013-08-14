@@ -1,0 +1,143 @@
+/* Visibility
+____________________________________________________________ */
+
+.hide {
+  display: none;
+}
+.show {
+  display: block;
+}
+
+.invisible {
+  visibility: hidden;
+}
+
+/* Borders
+____________________________________________________________ */
+
+.bluetop {
+	border-top: 2px solid #86aac8;
+}
+
+.bluebottom {
+	border-bottom: 2px solid #86aac8;
+}
+
+/* Spacing
+____________________________________________________________ */
+
+// Top
+
+.down10 {
+  margin-top: 10px;
+}
+
+.down20 {
+	margin-top: 20px;
+}
+
+.down30 {
+  margin-top: 30px;
+}
+
+.down40 {
+	margin-top: 40px;
+}
+
+.down50 {
+  margin-top: 50px;
+}
+
+.down60 {
+	margin-top: 60px;
+}
+
+.down70 {
+  margin-top: 70px;
+}
+
+.down80 {
+	margin-top: 80px;
+}
+
+// Right
+
+.right10 {
+	margin-right: 10px;
+}
+
+.right20 {
+	margin-right: 20px;
+}
+
+.right30 {
+	margin-right: 10px;
+}
+
+// Left
+
+.left10 {
+	margin-left: 10px;
+}
+
+.left20 {
+	margin-left: 20px;
+}
+
+.left30 {
+	margin-left: 10px;
+}
+
+/* Float
+____________________________________________________________ */
+
+.pull-right {
+  float: right;
+}
+.pull-left {
+  float: left;
+}
+
+/* Align
+____________________________________________________________ */
+
+.align-center {
+	text-align: center;
+}
+
+.align-right {
+	text-align: right;
+}
+
+.align-center {
+	text-align: center;
+}
+
+/* Columns
+____________________________________________________________ */
+
+.left-column, .right-column {
+	width: 50%;
+	float: left;
+}
+
+/* Other
+____________________________________________________________ */
+
+.clearfix {
+  @include clearfix();
+}
+
+.hide-text {
+  @include hide-text();
+}
+
+.input-block-level {
+  @include input-block-level();
+}
+
+.block {
+	box-sizing:border-box;
+	-moz-box-sizing:border-box;
+	display: block;
+}
