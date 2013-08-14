@@ -1,6 +1,9 @@
 require 'bundler'
 Bundler.require
 
+Dir["./src/*.rb"].each {|file| require file }
+Dir["./src/*/*.rb"].each {|file| require file }
+
 builder = Rack::Builder.new do
 
   # Asset Pipeline
