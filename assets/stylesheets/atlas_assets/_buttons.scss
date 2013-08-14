@@ -1,0 +1,93 @@
+.btn {
+	display: inline-block;
+	color: $white;
+	background-color: $darker_gray;
+	cursor: pointer;
+	padding: 4px 12px;
+	text-decoration: none;
+	@include border-radius($borderRadius);
+	outline: none;
+	@include smooth();
+}
+
+input[type=submit].btn,
+button.btn {
+	border: none;
+}
+
+.btn:hover, .btn:focus {
+	color: #FFF;
+}
+
+/* Sizes
+_________________________________________________________________ */
+
+.btn.small {
+	font-size: 12px;
+	padding: 5px 10px;
+}
+
+.btn.medium {
+	font-size: 17px;
+	padding: 7px 16px;
+	@include border-radius($borderRadiusMedium);
+}
+
+.btn.large {
+	font-size: 22px;
+	padding: 12px 25px;
+	line-height: 26px;
+	@include border-radius($borderRadiusLarge);
+}
+
+/* Colors
+_________________________________________________________________ */
+
+.btn.blue {
+	background-color: $blue;
+}
+
+.btn.red {
+	background-color: $red;
+}
+
+.btn.green {
+	background-color: $green;
+}
+
+.btn.disabled {
+	background-color: $light_gray;
+	color: $mid_gray;
+}
+
+.btn.gray {
+  background-color: $light_gray;
+  color: $darker_gray;
+}
+
+/* Close button
+_________________________________________________________________ */
+
+.close {
+  float: right;
+  font-size: 20px;
+  font-weight: bold;
+  line-height: $baseLineHeight;
+  color: $black;
+  @include opacity(20);
+  &:hover,
+  &:focus {
+    color: $black;
+    text-decoration: none;
+    cursor: pointer;
+    @include opacity(40);
+  }
+}
+
+button.close {
+  padding: 0;
+  cursor: pointer;
+  background: transparent;
+  border: 0;
+  -webkit-appearance: none;
+}

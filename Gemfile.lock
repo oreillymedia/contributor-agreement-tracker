@@ -2,8 +2,6 @@ GEM
   remote: https://rubygems.org/
   specs:
     addressable (2.3.5)
-    atlas_assets (0.1.13)
-      handlebars_assets (~> 0.12.1)
     bcrypt-ruby (3.1.1)
     daemons (1.1.9)
     data_mapper (1.2.0)
@@ -94,7 +92,6 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
-  atlas_assets (~> 0.1.13)
   data_mapper (= 1.2.0)
   dm-postgres-adapter (= 1.2.0)
   handlebars_assets

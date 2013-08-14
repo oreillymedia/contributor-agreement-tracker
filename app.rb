@@ -3,8 +3,10 @@ require 'bundler'
 Bundler.require
 require './database.rb'
 
-set :root, File.dirname(__FILE__)
+class App < Sinatra::Base
+  set :root, File.dirname(__FILE__)
 
-get '/' do
-  erb :hello
+  get '/' do
+    erb :hello
+  end
 end

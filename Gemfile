@@ -12,7 +12,7 @@ gem 'will_paginate', '3.0.3', require: ['will_paginate', 'will_paginate/data_map
 gem 'sprockets'
 gem 'sass'
 gem 'handlebars_assets'
-gem 'atlas_assets', "~> 0.1.13"
+# gem 'atlas_assets', "~> 0.1.13"
 
 
 group :development do

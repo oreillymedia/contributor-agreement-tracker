@@ -1,0 +1,62 @@
+/* Import Lato font
+---------------------------------------------------------------------------- */
+
+@font-face {
+  font-family: 'Lato';
+  font-style: normal;
+  font-weight: 700;
+  src: local('Lato Bold'), local('Lato-Bold'), url(http://themes.googleusercontent.com/static/fonts/lato/v6/qdgUG4U09HnJwhYI-uK18wLUuEpTyoUstqEm5AMlJo4.woff) format('woff');
+}
+@font-face {
+  font-family: 'Lato';
+  font-style: italic;
+  font-weight: 400;
+  src: local('Lato Italic'), local('Lato-Italic'), url(http://themes.googleusercontent.com/static/fonts/lato/v6/RYyZNoeFgb0l7W3Vu1aSWOvvDin1pK8aKteLpeZ5c0A.woff) format('woff');
+}
+
+/* Font Styles
+---------------------------------------------------------------------------- */
+
+body {
+  font-family: $sansFontFamily;
+  font-size: $baseFontSize;
+  line-height: $baseLineHeight;
+  color: $darker_gray;
+}
+
+h1, h2, h3, h4, h5 {
+  margin-bottom: 7px;
+  color: $darkest_gray;
+  @include smooth();
+}
+
+h1 {
+  font-size: 30px;
+  line-height: 36px;
+}
+
+h2 {
+  font-size: 24px;
+  line-height: 36px;
+}
+
+h3 {
+  line-height: 27px;
+  font-size: 18px;
+}
+
+h4, h5, h6 {
+  line-height: 18px;
+}
+
+a {
+  color: $blue;
+  text-decoration: none;
+}
+
+/* Heading split
+--------------------------------------------------------- */
+
+.heading-split h1, .heading-split h2, .heading-split h3, .heading-split > div {
+  display: inline-block;
+}
