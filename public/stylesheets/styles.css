@@ -634,7 +634,7 @@ footer ul li {
 /* Logos
 ---------------------------------------------------------- */
 .logo {
-  background-image: url(image_path("logo.svg"));
+  background-image: url("/images/logo-white.svg");
   background-size: 100% auto;
   background-repeat: no-repeat;
   display: inline-block;
@@ -642,7 +642,7 @@ footer ul li {
   height: 16px; }
 
 .logo.logo-white {
-  background-image: url(image_path("logo-white.svg")); }
+  background-image: url("/images/logo-white.svg"); }
 
 .logo.logo-small {
   width: 108px;
