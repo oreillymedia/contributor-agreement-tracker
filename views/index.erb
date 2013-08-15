@@ -1,0 +1,42 @@
+<div class="row down60">
+  <div class="span5">
+
+    <h1>Become a Contributor</h1>
+
+    <form accept-charset="UTF-8" action="/confirm" class="new_user" id="new_user" method="post">	
+
+      <label class="down10" for="full_name">Full Name</label>
+      <span class="help-block">Please provide your full name.</span>
+      <input class="span5" id="full_name" name="full_name" type="text" value="" />
+
+      <label class="down20" for="user_email">Email</label>
+      <span class="help-block">Please provide an contact email address.</span>
+      <input class="span5" id="email" name="email" size="30" type="email" value="" />
+
+      <label class="down20" for="address">Address</label>
+      <span class="help-block">Please provide your mailing address.</span>
+      <textarea class="span5" id="address" name="address" cols="30" rows="4"/></textarea>
+
+      <label class="checkbox down10">
+        <input name="user[tos]" type="hidden" value="0" /><input id="user_tos" name="user[tos]" type="checkbox" value="1" /> I agree to the O'Reilly Contributor Agreement
+      </label>
+
+      <input class="btn medium green block down10" name="commit" type="submit" value="Accept" />
+
+</form>
+  </div>
+  <div class="span1">&nbsp;</div>
+  <div class="span6">
+
+    <div class="box box-white" id="tos">
+      <h3>O'Reilly Contributor Agreement</h3>
+      <div class="box-inner">
+        <h4>Project Participation and Contribution Terms</h4>
+
+         <%= erb :contributor_agreement %>
+
+      </div>
+    </div>
+
+  </div>
+</div>

@@ -1,0 +1,35 @@
+
+To connect to the postgres database from inside psql
+
+----
+psql -U postgres -h localhost
+
+then use "atlas" as a password
+----
+
+To start shotgun from within vagrant.  It's binding to 127.0.0.0, but you need to bind it to 0.0.0.0 to be accessible from outside the box, so start it like this:
+
+----
+shotgun -p 9393 -o 0.0.0.0
+----
+
+
+present a registration form to collect
+
+* contact email address -- this must match the email you're using in your git commit
+* contact name
+* checkbox
+* presentation of terms
+
+
+When the users clicks the checkbox and presses submit:
+
+* Generate a unique regcode
+* send the user an email at their address with a link to verify their submission
+* email should also include the text of the cla with a "please keep this for your records"
+* a new email alias (contributor-agreements@oreilly.com) gets cc'ed
+* the user clicks to link to confirm
+
+Verification
+* The user's status is set to "verified"
+

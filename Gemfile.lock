@@ -56,7 +56,7 @@ GEM
     execjs (1.4.0)
       multi_json (~> 1.0)
     fastercsv (1.5.5)
-    handlebars_assets (0.12.3)
+    handlebars_assets (0.14.1)
       execjs (>= 1.2.9)
       sprockets (>= 2.0.3)
       tilt
