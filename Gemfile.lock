@@ -52,6 +52,7 @@ GEM
       dm-core (~> 1.2.0)
     do_postgres (0.10.13)
       data_objects (= 0.10.13)
+    dotenv (0.8.0)
     eventmachine (1.0.3)
     execjs (1.4.0)
       multi_json (~> 1.0)
@@ -63,7 +64,13 @@ GEM
     hike (1.2.3)
     json (1.8.0)
     json_pure (1.8.0)
+    mail (2.5.4)
+      mime-types (~> 1.16)
+      treetop (~> 1.4.8)
+    mime-types (1.24)
     multi_json (1.7.9)
+    mustache (0.99.4)
+    polyglot (0.3.3)
     rack (1.5.2)
     rack-protection (1.5.0)
       rack
@@ -85,6 +92,9 @@ GEM
       eventmachine (>= 0.12.6)
       rack (>= 1.0.0)
     tilt (1.4.1)
+    treetop (1.4.14)
+      polyglot
+      polyglot (>= 0.3.1)
     uuidtools (2.1.4)
     will_paginate (3.0.3)
 
@@ -94,7 +104,10 @@ PLATFORMS
 DEPENDENCIES
   data_mapper (= 1.2.0)
   dm-postgres-adapter (= 1.2.0)
+  dotenv
   handlebars_assets
+  mail
+  mustache
   sass
   shotgun
   sinatra

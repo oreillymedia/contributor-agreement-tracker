@@ -3,25 +3,29 @@
 
     <h1>Become a Contributor</h1>
 
-    <form accept-charset="UTF-8" action="/confirm" class="new_user" id="new_user" method="post">	
+    <form id="contributor-form" data-validate="parsley" accept-charset="UTF-8" action="/confirm" class="new_user" method="post">	
 
-      <label class="down10" for="full_name">Full Name</label>
+      <label class="down10" for="fullname">Full Name*</label>
       <span class="help-block">Please provide your full name.</span>
-      <input class="span5" id="full_name" name="full_name" type="text" value="" />
+      <input class="span5" id="full_name" name="fullname" type="text" data-required="true" value="" />
 
-      <label class="down20" for="user_email">Email</label>
-      <span class="help-block">Please provide an contact email address.</span>
-      <input class="span5" id="email" name="email" size="30" type="email" value="" />
+      <label class="down20" for="email">Email*</label>
+      <span class="help-block">
+	  Please provide your email address.  If you are using O'Reilly Atlas, this email address should match the 
+	  address you use in GitHub or in your git configuration (i.e, is should match your setting in 
+	  "git config --global user.email johndoe@example.com").
+      </span>
+      <input class="span5" id="email" name="email" size="30" type="email" value="" data-trigger="change" data-required="true" data-type="email" />
 
       <label class="down20" for="address">Address</label>
       <span class="help-block">Please provide your mailing address.</span>
       <textarea class="span5" id="address" name="address" cols="30" rows="4"/></textarea>
 
       <label class="checkbox down10">
-        <input name="user[tos]" type="hidden" value="0" /><input id="user_tos" name="user[tos]" type="checkbox" value="1" /> I agree to the O'Reilly Contributor Agreement
+      <input id="user_tos" name="accept_cla" type="checkbox" data-required="true" value="accepted" /> By checking this box, I agree to the O'Reilly Contributor Agreement license.*
       </label>
 
-      <input class="btn medium green block down10" name="commit" type="submit" value="Accept" />
+      <input type="submit" id="validate-contributor" class="btn medium green block down10"></input>
 
 </form>
   </div>

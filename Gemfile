@@ -7,6 +7,9 @@ gem 'sinatra'
 gem 'data_mapper', '1.2.0'
 gem 'dm-postgres-adapter', '1.2.0'
 gem 'will_paginate', '3.0.3', require: ['will_paginate', 'will_paginate/data_mapper']
+gem 'mustache'
+gem 'mail'
+gem 'dotenv'
 
 # assets
 gem 'sprockets'
