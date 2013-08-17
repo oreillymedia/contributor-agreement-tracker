@@ -13,6 +13,7 @@ gem 'dotenv'
 gem 'redcarpet'
 gem 'sinatra-contrib'
 gem 'json'
+gem 'sinatra-flash'
 
 # assets
 gem 'sprockets'

@@ -1,4 +1,13 @@
+<% if flash[:error] then %>
+ <div class="row flash span12">
+   <div class="flash-item error">
+     <%= flash[:error] %>
+  </div>
+</div>
+<% end %>
+
 <div class="row down60">
+
   <div class="span5">
 
     <h1>Become a Contributor</h1>
