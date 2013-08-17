@@ -24,8 +24,15 @@ class App < Sinatra::Base
       :enable_starttls_auto => true  }      
   end
 
+
+  # Grab the text of the cla agreement itself.  We need md for the confirmation emails
+  # and html for the web interface
+  $CLA_MD = IO.read('docs/contributor_agreement.md')
+  markdown = Redcarpet::Markdown.new(Redcarpet::Render::HTML, :autolink => true, :space_after_headers => true)
+  $CLA_HTML = markdown.render($CLA_MD)
+  
   get '/' do
-    erb :index, :locals => {:cla_text => markdown(:contributor_agreement)}
+    erb :index
   end
   
   get '/contributor_agreement' do
@@ -45,7 +52,6 @@ class App < Sinatra::Base
       u.confirmation_code = confirmation_code
       u.save
     
-      cla = IO.read('views/contributor_agreement.md')
       link = "http://contributor-agreements.oreilly.com/verify/#{confirmation_code}"
       # Send an email
       mail = Mail.deliver do
@@ -54,7 +60,7 @@ class App < Sinatra::Base
         from "contributor-agreements@oreilly.com"
         subject "Please confirm your contributor agreement"
         text_part do
-          body "\n\n Click this link to verify your account #{link} \n #{cla}"
+          body "\n\n Click this link to verify your account #{link} \n #{@cla_md}"
         end
       end
       @email = params[:email]
