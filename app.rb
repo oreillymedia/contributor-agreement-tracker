@@ -10,6 +10,8 @@ require './database.rb'
 class App < Sinatra::Base
   set :root, File.dirname(__FILE__)
 
+  # Set up the markdown processor
+
   # Configure the mailer
   Mail.defaults do
     delivery_method :smtp, {
@@ -23,7 +25,7 @@ class App < Sinatra::Base
   end
 
   get '/' do
-    erb :index
+    erb :index, :locals => {:cla_text => markdown(:contributor_agreement)}
   end
   
   get '/contributor_agreement' do
@@ -33,7 +35,7 @@ class App < Sinatra::Base
   post '/confirm' do
     confirmation_code = (0...10).map{(65+rand(26)).chr}.join
     email = params[:email]
-    begin 
+#    begin 
       u = Contributor.new
       u.fullname = params[:fullname]
       u.email = params[:email]
@@ -43,6 +45,7 @@ class App < Sinatra::Base
       u.confirmation_code = confirmation_code
       u.save
     
+      cla = IO.read('views/contributor_agreement.md')
       link = "http://contributor-agreements.oreilly.com/verify/#{confirmation_code}"
       # Send an email
       mail = Mail.deliver do
@@ -51,14 +54,14 @@ class App < Sinatra::Base
         from "contributor-agreements@oreilly.com"
         subject "Please confirm your contributor agreement"
         text_part do
-          body "\n\n Click this link to verify your account #{link}"
+          body "\n\n Click this link to verify your account #{link} \n #{cla}"
         end
       end
       @email = params[:email]
       erb :confirm
-    rescue
-      erb :save_error
-    end 
+#    rescue
+#      erb :save_error
+#    end 
   end 
   
   get '/verify/:confirmation_code' do
