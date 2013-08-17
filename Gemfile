@@ -11,6 +11,8 @@ gem 'mustache'
 gem 'mail'
 gem 'dotenv'
 gem 'redcarpet'
+gem 'sinatra-contrib'
+gem 'json'
 
 # assets
 gem 'sprockets'

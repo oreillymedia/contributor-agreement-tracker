@@ -1,7 +1,9 @@
 require 'rubygems'
 require 'mail'
 require 'bundler'
+require 'sinatra/cookies'
 require 'dotenv'
+
 Dotenv.load
 
 Bundler.require
@@ -9,9 +11,9 @@ require './database.rb'
 
 class App < Sinatra::Base
   set :root, File.dirname(__FILE__)
-
-  # Set up the markdown processor
-
+  enable :sessions
+  helpers Sinatra::Cookies
+  
   # Configure the mailer
   Mail.defaults do
     delivery_method :smtp, {
@@ -25,14 +27,18 @@ class App < Sinatra::Base
   end
 
 
-  # Grab the text of the cla agreement itself.  We need md for the confirmation emails
-  # and html for the web interface
+  # Grab the text of the cla agreement and make it a global constant.  
+  # We need md for the confirmation emails and html for the web interface
   $CLA_MD = IO.read('docs/contributor_agreement.md')
   markdown = Redcarpet::Markdown.new(Redcarpet::Render::HTML, :autolink => true, :space_after_headers => true)
   $CLA_HTML = markdown.render($CLA_MD)
   
   get '/' do
-    erb :index
+    data = {}
+    if cookies[:data] then
+      data = JSON.parse cookies[:data]
+    end
+    erb :index, :locals => { :data => data }
   end
   
   get '/contributor_agreement' do
@@ -47,24 +53,29 @@ class App < Sinatra::Base
       u.fullname = params[:fullname]
       u.email = params[:email]
       u.address = params[:address]
-      u.accepted_agreement = params[:accept_cla]
       u.date_invited = Date.today
       u.confirmation_code = confirmation_code
       u.save
     
+    
+      # Now store data as a cookie
+      
+      response.set_cookie 'data', {:value=> u.to_json, :max_age => "2592000"}
+#      response.set_cookie 'email', {:value=> params[:email], :max_age => "2592000"}
+#      response.set_cookie 'address', {:value=> params[:address], :max_age => "2592000"}
+      
       link = "http://contributor-agreements.oreilly.com/verify/#{confirmation_code}"
       # Send an email
-      mail = Mail.deliver do
-        to email
-        cc "contributor-agreements@oreilly.com"
-        from "contributor-agreements@oreilly.com"
-        subject "Please confirm your contributor agreement"
-        text_part do
-          body "\n\n Click this link to verify your account #{link} \n #{@cla_md}"
-        end
-      end
-      @email = params[:email]
-      erb :confirm
+#      mail = Mail.deliver do
+#        to email
+#        cc "contributor-agreements@oreilly.com"
+#        from "contributor-agreements@oreilly.com"
+#v       subject "Please confirm your contributor agreement"
+#        text_part do
+#          body "\n\n Click this link to verify your account #{link} \n #{@cla_md}"
+#        end
+#      end
+      redirect "/"
 #    rescue
 #      erb :save_error
 #    end 

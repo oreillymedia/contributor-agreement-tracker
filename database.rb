@@ -7,14 +7,12 @@ class Contributor
   property :fullname, String, :length => 255
   property :email, String, :length => 255
   property :address, Text
-  property :accepted_agreement, String
   property :confirmation_code, String
   property :date_invited, Date
   property :date_accepted, Date
   
   validates_presence_of :fullname
   validates_presence_of :email
-  validates_presence_of :accepted_agreement
   
 end
 

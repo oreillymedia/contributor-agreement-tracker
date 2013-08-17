@@ -7,25 +7,22 @@
 
       <label class="down10" for="fullname">Full Name*</label>
       <span class="help-block">Please provide your full name.</span>
-      <input class="span5" id="full_name" name="fullname" type="text" data-required="true" value="" />
+      <input class="span5" id="full_name" name="fullname" type="text" data-required="true" value="<%= data['fullname'] %>" />
 
       <label class="down20" for="email">Email*</label>
       <span class="help-block">
 	  Please provide your email address.  If you are using O'Reilly Atlas, this email address should match the 
-	  address you use in GitHub or in your git configuration (i.e, is should match your setting in 
-	  "git config --global user.email johndoe@example.com").
+	  address used in the project's commit history. <a href="learn_more_git">Learn more.</a>
       </span>
-      <input class="span5" id="email" name="email" size="30" type="email" value="" data-trigger="change" data-required="true" data-type="email" />
+      <input class="span5" 
+            id="email" name="email" size="30" 
+            type="email" data-trigger="change" data-required="true" data-type="email" value="<%= data['email'] %>" />
 
       <label class="down20" for="address">Address</label>
       <span class="help-block">Please provide your mailing address.</span>
-      <textarea class="span5" id="address" name="address" cols="30" rows="4"/></textarea>
+      <textarea class="span5" id="address" name="address" cols="30" rows="4"/><%= data["address"] %></textarea>
 
-      <label class="checkbox down10">
-      <input id="user_tos" name="accept_cla" type="checkbox" data-required="true" value="accepted" /> By checking this box, I agree to the O'Reilly Contributor Agreement license.*
-      </label>
-
-      <input type="submit" id="validate-contributor" class="btn medium green block down10"></input>
+      <input type="submit" id="validate-contributor" span="4" class="btn medium green block down10" value="By clicking this button, I agree to the contributor license."</input>
 
 </form>
   </div>
