@@ -10,6 +10,7 @@ gem 'will_paginate', '3.0.3', require: ['will_paginate', 'will_paginate/data_map
 gem 'mustache'
 gem 'mail'
 gem 'dotenv'
+gem 'redcarpet'
 
 # assets
 gem 'sprockets'

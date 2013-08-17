@@ -31,41 +31,39 @@ class App < Sinatra::Base
   end 
 
   post '/confirm' do
-
     confirmation_code = (0...10).map{(65+rand(26)).chr}.join
     email = params[:email]
-    u = Contributor.new
-    u.fullname = params[:fullname]
-    u.email = params[:email]
-    u.address = params[:address]
-    u.accepted_agreement = params[:accept_cla]
-    u.date_invited = Date.today
-    u.confirmation_code = confirmation_code
-    u.save
+    begin 
+      u = Contributor.new
+      u.fullname = params[:fullname]
+      u.email = params[:email]
+      u.address = params[:address]
+      u.accepted_agreement = params[:accept_cla]
+      u.date_invited = Date.today
+      u.confirmation_code = confirmation_code
+      u.save
     
-    link = "http://contributor-agreements.oreilly.com/verify/#{confirmation_code}"
-    # Send an email
-    mail = Mail.deliver do
-      to email
-      cc "contributor-agreements@oreilly.com"
-      from "contributor-agreements@oreilly.com"
-      subject "Please confirm your contributor agreement"
-      text_part do
-        body "\n\n Click this link to verify your account #{link}"
+      link = "http://contributor-agreements.oreilly.com/verify/#{confirmation_code}"
+      # Send an email
+      mail = Mail.deliver do
+        to email
+        cc "contributor-agreements@oreilly.com"
+        from "contributor-agreements@oreilly.com"
+        subject "Please confirm your contributor agreement"
+        text_part do
+          body "\n\n Click this link to verify your account #{link}"
+        end
       end
-    end
-    
-    @email = params[:email]
-    erb :confirm
+      @email = params[:email]
+      erb :confirm
+    rescue
+      erb :save_error
+    end 
   end 
   
   get '/verify/:confirmation_code' do
      u = Contributor.first(:confirmation_code => params[:confirmation_code])
-     if u
-       "Found you #{u}"
-     else
-       "Sorry!  Can't find this code"
-     end
+     erb :verification
   end
 
   get '/faq' do

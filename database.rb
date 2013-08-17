@@ -13,8 +13,8 @@ class Contributor
   property :date_accepted, Date
   
   validates_presence_of :fullname
-  validates_presence_of :fullname
-  validates_presence_of :fullname
+  validates_presence_of :email
+  validates_presence_of :accepted_agreement
   
 end
 
