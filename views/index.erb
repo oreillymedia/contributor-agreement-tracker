@@ -6,21 +6,18 @@
 </div>
 <% end %>
 
-<div class="row down60">
+<div class="row down50">
 
   <div class="span5">
-
-    <h1>Become a Contributor</h1>
 
     <form id="contributor-form" data-validate="parsley" accept-charset="UTF-8" action="/confirm" class="new_user" method="post">	
 
       <label class="down10" for="fullname">Full Name*</label>
-      <span class="help-block">Please provide your full name.</span>
       <input class="span5" id="full_name" name="fullname" type="text" data-required="true" value="<%= data['fullname'] %>" />
 
       <label class="down20" for="email">Email*</label>
       <span class="help-block">
-	  Please provide your email address.  If you are using O'Reilly Atlas, this email address should match the 
+	  If you are using O'Reilly Atlas, this email address should match the 
 	  address used in the project's commit history. <a href="learn_more_git">Learn more.</a>
       </span>
       <input class="span5" 
@@ -28,10 +25,9 @@
             type="email" data-trigger="change" data-required="true" data-type="email" value="<%= data['email'] %>" />
 
       <label class="down20" for="address">Address</label>
-      <span class="help-block">Please provide your mailing address.</span>
       <textarea class="span5" id="address" name="address" cols="30" rows="4"/><%= data["address"] %></textarea>
 
-      <input type="submit" id="validate-contributor" span="4" class="btn medium green block down10" value="By clicking this button, I agree to the contributor license."</input>
+      <input type="submit" id="validate-contributor" span="4" class="btn medium green block down10" value="I agree to the contributor license."</input>
 
 </form>
   </div>
@@ -40,7 +36,7 @@
 
     <div class="box box-white" id="tos">
       <h3>O'Reilly Contributor Agreement</h3>
-      <div class="box-inner">
+      <div class="box-inner" style="height: 350px; overflow: auto;">
          <%= $CLA_HTML %>
       </div>
     </div>

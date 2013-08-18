@@ -86,7 +86,8 @@ class App < Sinatra::Base
   
   get '/verify/:confirmation_code' do
      u = Contributor.first(:confirmation_code => params[:confirmation_code])
-     erb :verification
+     puts u.to_json
+     erb :verification, :locals => {:data => u}
   end
 
   get '/faq' do
