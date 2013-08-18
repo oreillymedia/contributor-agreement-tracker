@@ -2,16 +2,7 @@ Hello, {{fullname}}.  Someone (hopefully you!) has requested that you become a c
 
 http://contributor-agreements.oreilly.com/verify/{{confirmation_code}}
 
-If your mail client does not support live links, then please copy the link and paste it into a browser to complete the process of becoming a contributor.
+If your mail client does not support live links, then please copy the link and paste it into a browser to complete the process of becoming a contributor.  You can find a copy of the contributor agreement at http://contributor-agreements.oreilly.com/contributor_agreement.
 
-For your reference, the information submitted was:
-
-Full name: {{fullname}}
-
-email: {{email}}
-
-Address:
-{{address}}
-
-You can find a copy of the contributor agreement at http://contributor-agreements.oreilly.com/contributor_agreement.
+If you're received this email in error, please ignore it.
 
