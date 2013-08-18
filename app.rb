@@ -34,6 +34,7 @@ class App < Sinatra::Base
   # We need md for the confirmation emails and html for the web interface
   $CLA_MD = IO.read('docs/contributor_agreement.md')
   $VERIFICATION_EMAIL = IO.read('docs/verification_email.md')
+  $CONFIRMATION_EMAIL = IO.read('docs/confirmation_email.md')
   markdown = Redcarpet::Markdown.new(Redcarpet::Render::HTML, :autolink => true, :space_after_headers => true)
   $CLA_HTML = markdown.render($CLA_MD)
   
@@ -86,8 +87,28 @@ class App < Sinatra::Base
   
   get '/verify/:confirmation_code' do
      u = Contributor.first(:confirmation_code => params[:confirmation_code])
-     puts u.to_json
-     erb :verification, :locals => {:data => u}
+     if u then
+       u.date_accepted = Date.today
+       u.save
+       # Send an email
+       mail = Mail.deliver do
+         to u.email
+         cc "contributor-agreements@oreilly.com"
+         from "contributor-agreements@oreilly.com"
+         subject "Your O'Reilly Media Contributor Agreement confirmation"
+         text_part do
+            body Mustache.render($CONFIRMATION_EMAIL,{
+              :fullname => u.fullname,
+              :email => u.email,
+              :address => u.address,
+              :cla_md => $CLA_MD
+            })
+         end
+       end
+     else
+       flash[:error] = "This record could not be found.  Please try registering again."
+     end      
+     erb :verification
   end
 
   get '/faq' do
