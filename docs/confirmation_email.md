@@ -10,4 +10,4 @@ Address:
 
 The terms of the contributor agreement are:
 
-{{cla_md}}
+{{{cla_md}}}

@@ -1,35 +1,88 @@
+== Contributor Agreement Tracking system
 
-To connect to the postgres database from inside psql
+This system records the acceptance of a contributor license agreements (CLAs) for people participating in O'Reilly projects.  Two main parts:
+
+* Present the CLA and a form collect information required for people to accept the terms (name, email, and address) 
+* Send a confirmation link to the email provided.  The user must click the confirmation link they receive.
+* When the user clicks the confirmation link, set date they accepted the agreement and send them a copy of the CLA for their records.  (At the same time, we also cc: an internal email alias for our records.)
+* Provide an API that can be used to query whether a given person or list of people has accepted the CLA
+
+The "live" link for the system is https://contributor-agreements.oreilly.com
+
+
+=== Preparing the development environment
+
+* Be sure you have Virtualbox and vagrant installed on your machine
+* Create a new directory called "atlas-contributor-system" that will hold the application code and the atlas Chef cookbooks.
+* cd into atlas-contributor-system
+* Clone this repo (contributor-agreement-tracker)
+* clone the atlas cookbook repo (git@github.com:oreillymedia/orm-atlas-cookbooks.git)
+* Provision the box
+
+----
+new-host-2:Desktop odewahn$ cd atlas-contributors-system/
+new-host-2:atlas-contributors-system odewahn$ cd contributor-agreement-tracker/
+new-host-2:contributor-agreement-tracker odewahn$ vagrant up
+----
+
+Once the machine is provisioned, there are three steps:
+
+* create a new postgres database called "agreements"
+* create a .env file
+* start shotgun and bind it to port 0.0.0.0
+
+==== Create the postgres database
+
+* cd contributor-agreement-tracker
+* run "vagrant ssh"
+* log into the postgres database; the password is "atlas"
 
 ----
 psql -U postgres -h localhost
-
-then use "atlas" as a password
 ----
 
-To start shotgun from within vagrant.  It's binding to 127.0.0.0, but you need to bind it to 0.0.0.0 to be accessible from outside the box, so start it like this:
+* Create the admissions database using the command "create database agreements"
 
 ----
-shotgun -p 9393 -o 0.0.0.0
+vagrant@lucid64:~$ psql -U postgres -h localhost 
+Password for user postgres: 
+psql (8.4.17)
+SSL connection (cipher: DHE-RSA-AES256-SHA, bits: 256)
+Type "help" for help.
+
+postgres=# create database agreements;
 ----
 
-
-present a registration form to collect
-
-* contact email address -- this must match the email you're using in your git commit
-* contact name
-* checkbox
-* presentation of terms
+* quit postgres.  (the command is "\q")
 
 
-When the users clicks the checkbox and presses submit:
+==== Create the .env file
 
-* Generate a unique regcode
-* send the user an email at their address with a link to verify their submission
-* email should also include the text of the cla with a "please keep this for your records"
-* a new email alias (contributor-agreements@oreilly.com) gets cc'ed
-* the user clicks to link to confirm
+Create an environment file called ".env" in the main directory of "atlas-contributor-system/contributor-agreement-tracker"
 
-Verification
-* The user's status is set to "verified"
+----
+REDISTOGO_URL=redis://localhost:6379/
+PORT=3000
+RACK_ENV=development
+DATABASE_URL=postgres://postgres:atlas@localhost/agreements
+SENDGRID_DOMAIN=<your domain>
+SENDGRID_PASSWORD=<your sendgrid password>
+SENDGRID_USERNAME=<your domain>
+----
+
+==== Start shotgun
+
+To start shotgun from within vagrant.  By default, it binds to 127.0.0.0, but you need to bind it to 0.0.0.0 to be accessible from outside the box, so start it like this:
+
+----
+$ vagrant ssh
+$ cd /vagrant
+$ shotgun -p 9393 -o 0.0.0.0
+----
+
+=== Deploying to Production (Heroku)
+
+* add all the production configuration variables (found in the .env file)
+* remember to provision a database and set DATABASE_URL
+
 

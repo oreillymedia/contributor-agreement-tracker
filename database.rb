@@ -1,4 +1,4 @@
-DataMapper.setup(:default, ENV['DATABASE_URL'] || "postgres://localhost/sinatra-test")
+DataMapper.setup(:default, ENV['DATABASE_URL'])
 DataMapper::Model.raise_on_save_failure = true 
 
 class Contributor
