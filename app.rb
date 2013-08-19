@@ -59,6 +59,32 @@ class App < Sinatra::Base
     erb :faq
   end
   
+  get '/contributor_status' do
+    erb :contributor_status
+  end
+  
+  post '/contributor_status' do
+    response = {}
+    emails = params[:contributors].gsub("\n",",").split(",")
+    emails.each do |e|
+      key = e.strip
+      clas = Contributor.all(:email => key)
+      out = []
+      clas.each do |cla|
+         c = {
+          :fullname => cla.fullname,
+          :date_invited => cla.date_invited,
+          :date_accepted => cla.date_accepted,
+          :confirmation_code => cla.confirmation_code
+         }
+         out << c
+      end   
+      response[key] = out
+    end
+    JSON.pretty_generate(response)+"\n"
+  end
+  
+  
   post '/confirm' do
     @@logger.info "confirm -- generating acceptance request for #{params.to_json}"
     confirmation_code = (0...10).map{(65+rand(26)).chr}.join
