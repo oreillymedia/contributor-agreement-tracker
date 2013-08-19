@@ -81,6 +81,7 @@ class App < Sinatra::Base
       end   
       response[key] = out
     end
+    content_type :json
     JSON.pretty_generate(response)+"\n"
   end
   

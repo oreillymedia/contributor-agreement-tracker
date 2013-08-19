@@ -1,0 +1,28 @@
+<div class="row down60">
+  <div class="span8">
+      <h1>Check Contributor Status</h1>
+
+       This form allows you to check the CLA status for a group of email addresses.  The main use case is to for a list of contributors
+       to a git repo, which you can get like this:
+       <pre>
+	  git log --format='%ae' | sort -u
+       </pre>
+       The idea is that you can run this command in your repo, paste the output into the box below, and check their CLA status.
+       Or, you could just post the form directly, which is something we still need to document...
+       <p> 
+       
+    <form id="contributor-status-form" data-validate="parsley" accept-charset="UTF-8" action="/contributor_status" class="new_user" method="post">	
+
+      <label class="down20" for="address">Contributors list</label>
+      <span class="help-block">
+	  Please enter a list of email addresses for contributors whose status you would like to check.  You can either put 
+	  contributors in a comma separated list or one per line.
+      </span>
+
+      <textarea class="span5" id="contributors" name="contributors" cols="30" rows="4"/></textarea>
+
+      <input type="submit" id="validate-contributor" span="4" class="btn medium green block down10" value="Submit"</input>
+      
+   
+  </div>
+</div>
