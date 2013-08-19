@@ -68,6 +68,8 @@ DATABASE_URL=postgres://postgres:atlas@localhost/agreements
 SENDGRID_DOMAIN=<your domain>
 SENDGRID_PASSWORD=<your sendgrid password>
 SENDGRID_USERNAME=<your domain>
+NEW_RELIC_LICENSE_KEY=<new relic key>
+NEW_RELIC_APP_NAME=contributor-agreement-tracker
 ----
 
 ==== Start shotgun
