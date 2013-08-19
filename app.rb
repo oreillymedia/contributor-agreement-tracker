@@ -54,7 +54,11 @@ class App < Sinatra::Base
   get '/contributor_agreement' do
     erb :contributor_agreement
   end 
-
+  
+  get '/faq' do
+    erb :faq
+  end
+  
   post '/confirm' do
     @@logger.info "confirm -- generating acceptance request for #{params.to_json}"
     confirmation_code = (0...10).map{(65+rand(26)).chr}.join
@@ -122,8 +126,5 @@ class App < Sinatra::Base
      erb :verification
   end
 
-  get '/faq' do
-    erb :faq
-  end
   
 end

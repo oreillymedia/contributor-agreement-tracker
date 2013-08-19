@@ -6,3 +6,6 @@
 .vagrant*
 
 .env
+
+/log/*.*
+/log/*
