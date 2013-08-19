@@ -119,7 +119,7 @@ class App < Sinatra::Base
       
     rescue Exception => e
       puts e
-      @logger.info 'confirm -- exception #{e} occurred'
+      #@logger.info 'confirm -- exception #{e} occurred'
       flash[:error] = "An error occurred! Try again."
       redirect "/"
     end 
