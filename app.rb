@@ -3,6 +3,7 @@ require 'mail'
 require 'bundler'
 require 'sinatra/cookies'
 require 'sinatra/flash'
+require 'newrelic_rpm'
 require 'logger'
 require 'dotenv'
 

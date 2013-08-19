@@ -72,6 +72,7 @@ GEM
     mime-types (1.24)
     multi_json (1.7.9)
     mustache (0.99.4)
+    newrelic_rpm (3.6.6.147)
     polyglot (0.3.3)
     rack (1.5.2)
     rack-protection (1.5.0)
@@ -124,6 +125,7 @@ DEPENDENCIES
   logger
   mail
   mustache
+  newrelic_rpm
   redcarpet
   sass
   shotgun
