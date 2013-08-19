@@ -65,6 +65,7 @@ GEM
     hike (1.2.3)
     json (1.8.0)
     json_pure (1.8.0)
+    logger (1.2.8)
     mail (2.5.4)
       mime-types (~> 1.16)
       treetop (~> 1.4.8)
@@ -120,6 +121,7 @@ DEPENDENCIES
   dotenv
   handlebars_assets
   json
+  logger
   mail
   mustache
   redcarpet

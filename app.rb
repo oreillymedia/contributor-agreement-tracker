@@ -3,6 +3,7 @@ require 'mail'
 require 'bundler'
 require 'sinatra/cookies'
 require 'sinatra/flash'
+require 'logger'
 require 'dotenv'
 
 Dotenv.load
@@ -51,6 +52,7 @@ class App < Sinatra::Base
   end 
 
   post '/confirm' do
+    logger.info 'confirm -- generating acceptance request for #{params.to_json}'
     confirmation_code = (0...10).map{(65+rand(26)).chr}.join
     begin 
 
@@ -75,17 +77,21 @@ class App < Sinatra::Base
            body Mustache.render($VERIFICATION_EMAIL,u)
         end
       end
+
+      logger.info 'confirm -- sent confirmation for #{u.to_json}'
       
       erb :confirm, :locals => {:email => params[:email]}
       
     rescue Exception => e
       puts e
+      logger.info 'confirm -- exception #{e} occurred'
       flash[:error] = "An error occurred! Try again."
       redirect "/"
     end 
   end 
   
   get '/verify/:confirmation_code' do
+     logger.info 'verify -- verifying confirmation code for #{params.to_json}'
      u = Contributor.first(:confirmation_code => params[:confirmation_code])
      if u then
        u.date_accepted = Date.today
@@ -105,6 +111,7 @@ class App < Sinatra::Base
             })
          end
        end
+       logger.info 'verify -- verified confirmation code for #{u.to_json}'
      else
        flash[:error] = "This record could not be found.  Please try registering again."
      end      

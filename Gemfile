@@ -14,6 +14,7 @@ gem 'redcarpet'
 gem 'sinatra-contrib'
 gem 'json'
 gem 'sinatra-flash'
+gem 'logger'
 
 # assets
 gem 'sprockets'
