@@ -8,6 +8,6 @@ Dotenv.load
 require './app'
 
 run Rack::URLMap.new(
-  "/"       => Sinatra::App.new,
-  "/resque" =>  Resque::Server.new
+  "/"       => App::new,
+  "/resque" => Resque::Server.new
 )
