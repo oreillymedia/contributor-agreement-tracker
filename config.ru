@@ -7,7 +7,8 @@ Dotenv.load
 
 require './app'
 
-run Rack::URLMap.new(
-  "/"       => App::new,
+# With this method of creating a URL Map, instantiate apps using the new method
+run Rack::URLMap.new({
+  "/"       => App.new,
   "/resque" => Resque::Server.new
-)
+})
