@@ -1,3 +1,6 @@
+require "./workers"
+require "resque/tasks"
+
 #
 # These rake tasks are required by the vagrant setup on orm-atlas-cookbooks
 #

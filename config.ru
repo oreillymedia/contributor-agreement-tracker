@@ -1,3 +1,4 @@
+require 'resque/server'
 require 'bundler'
 Bundler.require
 
@@ -6,6 +7,7 @@ Dotenv.load
 
 require './app'
 
-map '/' do
-  run App
-end
+run Rack::URLMap.new(
+  "/"       => Sinatra::App.new,
+  "/resque" =>  Resque::Server.new
+)

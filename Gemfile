@@ -16,6 +16,8 @@ gem 'json'
 gem 'sinatra-flash'
 gem 'logger'
 gem 'newrelic_rpm'
+gem 'resque'
+gem 'resque-status'
 
 # assets
 gem 'sprockets'
