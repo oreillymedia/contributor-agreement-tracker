@@ -42,6 +42,7 @@ Vagrant.configure("2") do |config|
     }
 
     chef.add_recipe "atlas::configure_localhost"
+    chef.add_recipe "atlasworkers::configure_localhost"
   end
 
 end
