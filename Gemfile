@@ -18,6 +18,7 @@ gem 'logger'
 gem 'newrelic_rpm'
 gem 'resque'
 gem 'resque-status'
+gem 'octokit'
 
 # assets
 gem 'sprockets'
