@@ -11,11 +11,6 @@ Dotenv.load
 # To start these, use this command:
 #   rake resque:work QUEUE=*
 
-# Configure redis
-uri = URI.parse(ENV["REDIS_URL"])
-Resque.redis = Redis.new(:host => uri.host, :port => uri.port, :password => uri.password, :thread_safe => true)
-
-
 def log(logger, queue, process_id, msg)
   logger.info "#{queue} \t #{process_id} \t #{msg}"
 end
@@ -41,6 +36,7 @@ class EmailWorker
   
   
   def perform(process_id, msg)   
+    puts "doing anything at all?"
     
     log(@logger, @queue, process_id, "Attempting to send an email #{msg}")
     email_body = IO.read(msg['email_src'])

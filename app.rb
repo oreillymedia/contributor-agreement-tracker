@@ -1,9 +1,9 @@
 require 'rubygems'
+require 'resque'
+require 'resque-status'
 require 'bundler'
 require 'sinatra/cookies'
 require 'sinatra/flash'
-require 'resque'
-require 'resque-status'
 require 'newrelic_rpm'
 require 'logger'
 require './workers.rb'
@@ -20,6 +20,10 @@ class App < Sinatra::Base
   helpers Sinatra::Cookies
   register Sinatra::Flash
   set :session_secret, "My session secret"
+  
+  # Configure redis
+  uri = URI.parse(ENV["REDIS_URL"])
+  Resque.redis = Redis.new(:host => uri.host, :port => uri.port, :password => uri.password, :thread_safe => true)
   
 
   #create logger
@@ -75,9 +79,8 @@ class App < Sinatra::Base
   
   
   post '/confirm' do
-    #@@logger.info "confirm -- generating acceptance request for #{params.to_json}"
     confirmation_code = (0...10).map{(65+rand(26)).chr}.join
-#    begin 
+    begin 
 
       # Now store data as a persistent cookie so that their info appears each time      
       response.set_cookie 'data', {:value=> params.to_json, :max_age => "2592000"}
@@ -102,12 +105,11 @@ class App < Sinatra::Base
       
       erb :confirm, :locals => {:email => params[:email]}
       
-#    rescue Exception => e
-#      puts e
-#      #@logger.info 'confirm -- exception #{e} occurred'
-#      flash[:error] = "An error occurred! Try again."
-#      redirect "/"
-#    end 
+    rescue Exception => e
+      puts e
+      flash[:error] = "An error occurred! Try again."
+      redirect "/"
+    end 
   end 
   
   get '/verify/:confirmation_code' do
