@@ -21,6 +21,7 @@ class EmailWorker
   include Resque::Plugins::Status
   @queue = "email_worker"
   @logger ||= Logger.new(STDOUT)   
+    
   
   # Configure the mailer
   Mail.defaults do
@@ -35,7 +36,7 @@ class EmailWorker
   end
   
   
-  def perform(process_id, msg)   
+  def self.perform(process_id, msg)   
     puts "doing anything at all?"
     
     log(@logger, @queue, process_id, "Attempting to send an email #{msg}")

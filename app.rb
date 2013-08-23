@@ -24,7 +24,7 @@ class App < Sinatra::Base
   # Configure redis
   uri = URI.parse(ENV["REDIS_URL"])
   Resque.redis = Redis.new(:host => uri.host, :port => uri.port, :password => uri.password, :thread_safe => true)
-  
+
 
   #create logger
   @@logger = Logger.new(STDOUT)  
@@ -82,6 +82,7 @@ class App < Sinatra::Base
     confirmation_code = (0...10).map{(65+rand(26)).chr}.join
     begin 
 
+
       # Now store data as a persistent cookie so that their info appears each time      
       response.set_cookie 'data', {:value=> params.to_json, :max_age => "2592000"}
 
@@ -91,7 +92,7 @@ class App < Sinatra::Base
       u.address = params[:address]
       u.date_invited = Date.today
       u.confirmation_code = confirmation_code
-#      u.save
+      u.save
   
       msg = {
         :email_src => 'docs/verification_email.md',
@@ -99,7 +100,7 @@ class App < Sinatra::Base
         :to => u.email,
         :payload => u
       }
-      job = EmailWorker.new(msg)
+      job = EmailWorker.create(msg)
 
       #@@logger.info "confirm -- sent confirmation for #{u.to_json}"
       
@@ -119,20 +120,18 @@ class App < Sinatra::Base
        u.date_accepted = Date.today
        u.save
        # Send an email
-       mail = Mail.deliver do
-         to u.email
-         cc "contributor-agreements@oreilly.com"
-         from "contributor-agreements@oreilly.com"
-         subject "Your O'Reilly Media Contributor Agreement confirmation"
-         text_part do
-            body Mustache.render($CONFIRMATION_EMAIL,{
-              :fullname => u.fullname,
-              :email => u.email,
-              :address => u.address,
-              :cla_md => $CLA_MD
-            })
-         end
-       end
+       msg = {
+         :email_src => 'docs/confirmation_email.md',
+         :subject => "Your O'Reilly Media Contributor Agreement confirmation",
+         :to => u.email,
+         :payload => {
+             :fullname => u.fullname,
+             :email => u.email,
+             :address => u.address,
+             :cla_md => $CLA_MD
+         }
+       }
+       job = EmailWorker.create(msg)
        #@@logger.info "verify -- verified confirmation code for #{u.to_json}"
      else
        flash[:error] = "This record could not be found.  Please try registering again."
