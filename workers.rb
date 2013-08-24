@@ -44,7 +44,7 @@ class EmailWorker
     mail = Mail.deliver do
       to msg['to']
       cc ENV["CLA_ALIAS"]
-      from cc ENV["CLA_ALIAS"]
+      from ENV["CLA_ALIAS"]
       subject msg['subject']
       text_part do
         body Mustache.render(email_body,msg['payload'])
