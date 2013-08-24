@@ -70,6 +70,9 @@ SENDGRID_PASSWORD=<your sendgrid password>
 SENDGRID_USERNAME=<your domain>
 NEW_RELIC_LICENSE_KEY=<new relic key>
 NEW_RELIC_APP_NAME=contributor-agreement-tracker
+GITHUB_LOGIN=<github username>
+GITHUB_TOKEN=<github token>
+
 ----
 
 ==== Start shotgun
