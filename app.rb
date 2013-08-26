@@ -55,6 +55,20 @@ class App < Sinatra::Base
     erb :contributor_status
   end
   
+  get "/webhook" do
+    erb :webhook
+  end
+  
+  post "/webhook" do
+    msg = {
+      :repo => params[:repo], 
+      :callback => params[:callback]
+    }
+    job = WebhookWorker.create(msg) 
+    flash[:notice] = "Your webhook request has been added as job #{job}"
+    redirect "/webhook"
+  end
+  
   post '/contributor_status' do
     response = {}
     emails = params[:contributors].gsub("\n",",").split(",")
