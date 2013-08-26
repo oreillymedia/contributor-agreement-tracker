@@ -1,0 +1,28 @@
+<% if flash[:notice] then %>
+ <div class="row flash span12">
+   <div class="flash-item notice">
+     <%= flash[:notice] %>
+  </div>
+</div>
+<% end %>
+
+<div class="row down60">
+  <div class="span8">
+<form action="/webhook" method="POST">
+	<table>
+		<tr>
+			<th>Repo</th>
+			<td><input type="text" name="repo" value="odewahn/test-sqs-api"/></td>
+		</tr>
+		<tr>
+			<th>Callback</th>
+			<td><input type="text" name="callback" value="https://atlas-utilities.oreilly.com/pull_request_alert"/></td>
+		</tr>
+		<tr>
+			<th>&nbsp;</th>
+			<td><input type="submit"></td>
+		</tr>
+	</table>
+</form>
+</div>
+</div>
