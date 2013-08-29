@@ -72,7 +72,7 @@ class WebhookWorker
          msg["repo"],
          'web',
          {
-           :url => msg["callback"],
+           :url => ENV["VALIDATION_HOOK"],
            :content_type => 'json'
          },
          {

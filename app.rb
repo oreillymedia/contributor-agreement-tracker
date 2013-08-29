@@ -67,6 +67,13 @@ class App < Sinatra::Base
     redirect "/webhook"
   end
   
+  post "/validation_hook" do
+    msg = {
+      :body => JSON.parse(request.body.read)
+    }
+    job = CLAWorker.create(msg)
+  end
+  
   post '/contributor_status' do
     response = {}
     emails = params[:contributors].gsub("\n",",").split(",")
