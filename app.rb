@@ -31,9 +31,7 @@ class App < Sinatra::Base
 
   # Grab the text of the cla agreement and make it a global constant.  
   # We need md for the confirmation emails and html for the web interface
-  $CLA_MD = IO.read('docs/contributor_agreement.md')
-  markdown = Redcarpet::Markdown.new(Redcarpet::Render::HTML, :autolink => true, :space_after_headers => true)
-  $CLA_HTML = markdown.render($CLA_MD)
+  $CLA_HTML = IO.read('docs/cla.html')
   
   get '/' do
     data = {}
@@ -48,7 +46,7 @@ class App < Sinatra::Base
   end 
   
   get '/faq' do
-    erb :faq
+    erb :faq, :locals => { :cla_faq => IO.read('docs/cla_faq.html')}
   end
   
   get '/contributor_status' do
@@ -103,7 +101,7 @@ class App < Sinatra::Base
       u = Contributor.new
       u.fullname = params[:fullname]
       u.email = params[:email]
-      u.address = params[:address]
+      u.github_handle = params[:github_handle]
       u.date_invited = Date.today
       u.confirmation_code = confirmation_code
       u.save
@@ -136,8 +134,7 @@ class App < Sinatra::Base
          :payload => {
              :fullname => u.fullname,
              :email => u.email,
-             :address => u.address,
-             :cla_md => $CLA_MD
+             :github_handle => u.github_handle
          }
        }
        job = EmailWorker.create(msg)

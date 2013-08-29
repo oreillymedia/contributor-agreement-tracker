@@ -8,7 +8,7 @@ namespace :db do
 
   desc "create a database"
   task :create do
-    puts "figure out how to create a database here"
+     `createdb -h localhost agreements`    
   end
 
 
