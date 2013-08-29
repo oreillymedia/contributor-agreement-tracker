@@ -59,8 +59,7 @@ class App < Sinatra::Base
   
   post "/webhook" do
     msg = {
-      :repo => params[:repo], 
-      :callback => params[:callback]
+      :repo => params[:repo]
     }
     job = WebhookWorker.create(msg) 
     flash[:notice] = "Your webhook request has been added as job #{job}"

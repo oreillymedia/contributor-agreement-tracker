@@ -66,7 +66,7 @@ class WebhookWorker
   @github_client ||= Octokit::Client.new(:login => ENV["GITHUB_LOGIN"], :oauth_token => ENV["GITHUB_TOKEN"])
     
   def self.perform(process_id, msg)
-    log(@logger, @queue, process_id, "Attempting to add webhook #{msg}")
+    log(@logger, @queue, process_id, "Attempting to add webhook #{msg} #{ENV['GITHUB_LOGIN']}")
     begin
        @github_client.create_hook(
          msg["repo"],
