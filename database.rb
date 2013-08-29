@@ -15,7 +15,7 @@ class Contributor
 
   validates_presence_of :fullname
   validates_presence_of :email
-  validates_uniqueness_of :email
+#  validates_uniqueness_of :email
 
 end
 
