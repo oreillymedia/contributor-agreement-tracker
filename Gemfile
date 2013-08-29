@@ -18,7 +18,7 @@ gem 'logger'
 gem 'newrelic_rpm'
 gem 'resque'
 gem 'resque-status'
-gem 'octokit'
+gem 'octokit', '1.25.0'
 gem 'thin'
 
 # assets
