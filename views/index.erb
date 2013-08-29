@@ -24,10 +24,16 @@
             id="email" name="email" size="30" 
             type="email" data-trigger="change" data-required="true" data-type="email" value="<%= data['email'] %>" />
 
-      <label class="down20" for="address">Address</label>
-      <textarea class="span5" id="address" name="address" cols="30" rows="4"/><%= data["address"] %></textarea>
+      <label class="down20" for="email">GitHub Handle</label>
+      <span class="help-block">
+	  If you are using O'Reilly Atlas, please supply your github handle. <a href="/faq">Learn more.</a>
+      </span>
+      <input class="span5" 
+            id="github_handle" name="github_handle" size="30" 
+            value="<%= data['github_handle'] %>" />
 
-      <input type="submit" id="validate-contributor" span="4" class="btn medium green block down10" value="I agree to the contributor license."</input>
+ 
+      <input type="submit" id="validate-contributor" span="4" class="btn medium green block down10" value="I agree to the CLA."</input>
 
 </form>
   </div>
@@ -35,7 +41,7 @@
   <div class="span6">
 
     <div class="box box-white" id="tos">
-      <h3>O'Reilly Contributor Agreement</h3>
+      <h3>O'Reilly Contributor License Agreement ("CLA")</h3>
       <div class="box-inner" style="height: 350px; overflow: auto;">
          <%= $CLA_HTML %>
       </div>

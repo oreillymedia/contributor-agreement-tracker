@@ -4,10 +4,9 @@ Full name: {{fullname}}
 
 email: {{email}}
 
-Address:
-{{address}}
+Github handle: {{github_handle}}
+
+Confirmation code: {{confirmation_code_}}
 
 
-The terms of the contributor agreement are:
-
-{{{cla_md}}}
+You can find the full terms of the CLA at http://contributor-agreements.oreilly.com/contributor_agreement.
