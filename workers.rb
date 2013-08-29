@@ -76,7 +76,7 @@ class WebhookWorker
            :content_type => 'json'
          },
          {
-           :events => ['pull_request'],
+           :events => ['pull_request', 'commit'],
            :active => true
          }
        )
