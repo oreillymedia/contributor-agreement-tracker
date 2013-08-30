@@ -100,11 +100,8 @@ class CLAWorker
   
   def self.perform(process_id, msg)
     # get a list of all contributors
-    contributors = []
-    msg["body"]["commits"].each do |x| 
-       contributors << x["author"]["email"]
-    end
-    log(@logger, @queue, process_id, "The contributors are #{contributors}")
+    authorsArray = x["body"]["commits"].map { |hash| hash["author"] }
+    log(@logger, @queue, process_id, "The contributors are #{authorsArray}")
 
 #    # Pull out the template from the checklist repo on github and process the variables using mustache
 #    message_body = Mustache.render($WEBHOOK_ISSUE_TEXT, dat).encode('utf-8', :invalid => :replace, :undef => :replace, :replace => '_')
