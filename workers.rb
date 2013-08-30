@@ -102,7 +102,7 @@ class CLAWorker
     # get a list of all contributors
     contributors = []
     msg["body"]["commits"].each do |x| 
-       puts x["author"]["email"]
+       contributors << x["author"]["email"]
     end
     log(@logger, @queue, process_id, "The contributors are #{contributors}")
 
