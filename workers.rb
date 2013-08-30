@@ -100,7 +100,7 @@ class CLAWorker
   
   def self.perform(process_id, msg)
     # get a list of all contributors
-    authorsArray = x["body"]["commits"].map { |hash| hash["author"] }
+    authorsArray = msg["body"]["commits"].map { |hash| hash["author"] }
     log(@logger, @queue, process_id, "The contributors are #{authorsArray}")
 
 #    # Pull out the template from the checklist repo on github and process the variables using mustache
