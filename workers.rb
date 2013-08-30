@@ -99,33 +99,17 @@ class CLAWorker
   $WEBHOOK_ISSUE_TEXT = IO.read('docs/webhook_issue_text.md')
   
   def self.perform(process_id, msg)
-    dat = {
-       "number" => msg["body"]["number"],
-       "issue_url" => msg["body"]["pull_request"]["issue_url"],
-       "sender" => msg["body"]["sender"]["login"],
-       "sender_url" => msg["body"]["sender"]["url"],
-       "body" => msg["body"]["pull_request"]["body"],
-       "diff_url" => msg["body"]["pull_request"]["diff_url"],
-       "base" => {
-          "url" => msg["body"]["pull_request"]["base"]["repo"]["html_url"],
-          "description" => msg["body"]["pull_request"]["base"]["repo"]["description"],
-          "full_name" => msg["body"]["pull_request"]["base"]["repo"]["full_name"],
-          "owner" => msg["body"]["pull_request"]["base"]["repo"]["owner"]["login"],
-          "owner_url" => msg["body"]["pull_request"]["base"]["repo"]["owner"]["url"]
-       },
-       "request" => {
-          "url" => msg["body"]["pull_request"]["head"]["repo"]["html_url"],
-          "description" => msg["body"]["pull_request"]["head"]["repo"]["description"],
-          "full_name" => msg["body"]["pull_request"]["head"]["repo"]["full_name"],
-          "owner" => msg["body"]["pull_request"]["head"]["repo"]["owner"]["login"],
-          "owner_url" => msg["body"]["pull_request"]["head"]["repo"]["owner"]["url"]
-       }
-    }
-    log(@logger, @queue, process_id, "The payload for the template is #{dat}")
-    # Pull out the template from the checklist repo on github and process the variables using mustache
-    message_body = Mustache.render($WEBHOOK_ISSUE_TEXT, dat).encode('utf-8', :invalid => :replace, :undef => :replace, :replace => '_')
-    log(@logger, @queue, process_id, "The message is #{message_body}")
-    @github_client.add_comment(dat["base"]["full_name"], dat["number"], message_body)     
+    # get a list of all contributors
+    contributors = []
+    msg["body"]["commits"].each do |x| 
+       puts x["author"]["email"]
+    end
+    log(@logger, @queue, process_id, "The contributors are #{contributors}")
+
+#    # Pull out the template from the checklist repo on github and process the variables using mustache
+#    message_body = Mustache.render($WEBHOOK_ISSUE_TEXT, dat).encode('utf-8', :invalid => :replace, :undef => :replace, :replace => '_')
+#    log(@logger, @queue, process_id, "The message is #{message_body}")
+#    @github_client.add_comment(dat["base"]["full_name"], dat["number"], message_body)     
     
   end
 
