@@ -18,14 +18,14 @@ gem 'logger'
 gem 'newrelic_rpm'
 gem 'resque'
 gem 'resque-status'
-gem 'octokit', '1.25.0'
+gem 'octokit'
 gem 'thin'
 
 # assets
-gem 'sprockets'
-gem 'sass'
-gem 'handlebars_assets'
-# gem 'atlas_assets', "~> 0.1.13"
+#gem 'sprockets'
+#gem 'sass'
+#gem 'handlebars_assets'
+#gem 'atlas_assets', "~> 0.1.13"
 
 
 group :development do

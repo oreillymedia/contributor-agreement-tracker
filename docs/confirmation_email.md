@@ -4,9 +4,9 @@ Full name: {{fullname}}
 
 email: {{email}}
 
-Github handle: {{github_handle}}
-
 Confirmation code: {{confirmation_code_}}
 
 
-You can find the full terms of the CLA at http://contributor-agreements.oreilly.com/contributor_agreement.
+For your future reference, you can find the full terms of the CLA at http://contributor-agreements.oreilly.com/contributor_agreement.
+
+If you have questions, concerns, or feel that you have received this in error, please email atlas@oreilly.com.

@@ -4,5 +4,8 @@ http://contributor-agreements.oreilly.com/verify/{{confirmation_code}}
 
 If your mail client does not support live links, then please copy the link and paste it into a browser to complete the process of becoming a contributor.  You can find a copy of the contributor agreement at http://contributor-agreements.oreilly.com/contributor_agreement.
 
-If you're received this email in error, please ignore it.
+If you have questions, concerns, or feel that you have received this in error, please email atlas@oreilly.com.
 
+Thank you,
+
+O'Reilly Media

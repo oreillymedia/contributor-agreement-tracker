@@ -61,16 +61,24 @@ class App < Sinatra::Base
     msg = {
       :repo => params[:repo]
     }
-    job = WebhookWorker.create(msg) 
+    job = AddWebhookWorker.create(msg) 
     flash[:notice] = "Your webhook request has been added as job #{job}"
     redirect "/webhook"
   end
   
-  post "/validation_hook" do
+  post "/push_validation_hook" do
+    msg = {
+      :body => JSON.parse(params[:payload])
+    }
+    job = CLAPushWorker.create(msg)
+  end
+  
+  post "/pull_validation_hook" do
+    puts params
     msg = {
       :body => JSON.parse(request.body.read)
     }
-    job = CLAWorker.create(msg)
+    job = CLAPullWorker.create(msg)
   end
   
   post '/contributor_status' do
@@ -99,7 +107,6 @@ class App < Sinatra::Base
   post '/confirm' do
     confirmation_code = (0...10).map{(65+rand(26)).chr}.join
     begin 
-
 
       # Now store data as a persistent cookie so that their info appears each time      
       response.set_cookie 'data', {:value=> params.to_json, :max_age => "2592000"}
