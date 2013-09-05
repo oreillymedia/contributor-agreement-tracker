@@ -76,7 +76,7 @@ class App < Sinatra::Base
   post "/pull_validation_hook" do
     puts params
     msg = {
-      :body => JSON.parse(request.body.read)
+      :body => JSON.parse(params[:payload])
     }
     job = CLAPullWorker.create(msg)
   end
