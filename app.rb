@@ -68,7 +68,7 @@ class App < Sinatra::Base
   
   post "/push_validation_hook" do
     msg = {
-      :body => JSON.parse(params[:payload])
+      :body => JSON.parse(request.body.read)
     }
     job = CLAPushWorker.create(msg)
   end
@@ -76,7 +76,7 @@ class App < Sinatra::Base
   post "/pull_validation_hook" do
     puts params
     msg = {
-      :body => JSON.parse(params[:payload])
+      :body => JSON.parse(request.body.read)
     }
     job = CLAPullWorker.create(msg)
   end
