@@ -20,6 +20,7 @@ gem 'resque'
 gem 'resque-status'
 gem 'octokit'
 gem 'thin'
+gem 'rake'
 
 # assets
 #gem 'sprockets'

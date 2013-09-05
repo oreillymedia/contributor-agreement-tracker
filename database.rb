@@ -8,14 +8,13 @@ class Contributor
   property :id, Serial
   property :fullname, String, :length => 255
   property :email, String, :length => 255
-  property :github_handle, String, :length => 255
   property :confirmation_code, String
   property :date_invited, Date
   property :date_accepted, Date
 
   validates_presence_of :fullname
   validates_presence_of :email
-#  validates_uniqueness_of :email
+  validates_uniqueness_of :email
 
 end
 

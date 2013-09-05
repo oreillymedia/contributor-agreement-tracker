@@ -114,7 +114,6 @@ class App < Sinatra::Base
       u = Contributor.new
       u.fullname = params[:fullname]
       u.email = params[:email]
-      u.github_handle = params[:github_handle]
       u.date_invited = Date.today
       u.confirmation_code = confirmation_code
       u.save
@@ -146,8 +145,7 @@ class App < Sinatra::Base
          :to => u.email,
          :payload => {
              :fullname => u.fullname,
-             :email => u.email,
-             :github_handle => u.github_handle
+             :email => u.email
          }
        }
        job = EmailWorker.create(msg)

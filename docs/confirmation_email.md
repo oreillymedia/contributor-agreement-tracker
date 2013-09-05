@@ -4,8 +4,7 @@ Full name: {{fullname}}
 
 email: {{email}}
 
-Confirmation code: {{confirmation_code_}}
-
+Confirmation code: {{confirmation_code}}
 
 For your future reference, you can find the full terms of the CLA at http://contributor-agreements.oreilly.com/contributor_agreement.
 
