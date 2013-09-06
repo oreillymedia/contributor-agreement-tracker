@@ -1,3 +1,6 @@
+require 'rubygems'
+require 'bundler'
+Bundler.require
 require 'mustache'
 require 'logger'
 require 'resque'
@@ -5,18 +8,66 @@ require 'resque-status'
 require 'redis'
 require 'mail'
 require 'octokit'
-require 'dotenv'
 
+require 'dotenv'
 Dotenv.load
+
+require './database.rb'
+
 
 # To start these, use this command:
 #   rake resque:work QUEUE=*
+#
+# If testing locally, I've got a proxy set up on the atlas-worker staging that I
+# use as an endpoint for the webhooks
+#
+#   ssh -g -R 3000:127.0.0.1:3000 root@atlas-worker-staging.makerpress.com 
 
 def log(logger, queue, process_id, msg)
   logger.info "#{queue} \t #{process_id} \t #{msg}"
 end
 
+# Get a hook to redis to use as a cahce
+uri = URI.parse(ENV["REDIS_URL"])
+@cache = Redis.new(:host => uri.host, :port => uri.port, :password => uri.password, :thread_safe => true)
 
+# This will mark a user as recently nagged.  TTL is how long the cache will hold the record
+def mark(status, user, ttl)
+  @cache.setex "#{status}:#{user}", ttl, "yes"
+end
+
+def check?(status,user)
+  if @cache.get("#{status}:#{user}") then
+    true
+  else
+    false
+  end
+end
+
+# this method has a side effects in the cache
+def notify?(user)
+  ret_val = false
+  if !check?("verified", user)
+    u = Contributor.first(:email => user)
+    if u
+      # the user has registered
+      # now test if they have verified
+      # if they have not verified, then send them a nag if they haven't already been nagged
+      # if they have accepted, then mark them in the cache
+      if u.date_accepted
+         mark("verified", user, 86400)
+      else
+        if !check?("nagged", user, 3600)
+           ret_val = true        
+           mark("nagged",user)
+        end
+      end
+    end
+  end
+  return ret_val
+end
+
+      
 #
 # Email queue for sending notices
 #
@@ -122,9 +173,10 @@ class CLAPushWorker
          :to => c["email"],
          :payload => { :url => msg["body"]["repository"]["url"] || "missing repo"}
        }
-       
-       puts msg
-       job = EmailWorker.create(m)
+       # send this user an email if they haven't been verified or nagged
+       if notify?(c.email)
+          job = EmailWorker.create(m)
+       end
     end
   end
   
