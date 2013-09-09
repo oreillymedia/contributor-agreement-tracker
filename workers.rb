@@ -29,44 +29,35 @@ end
 
 # Get a hook to redis to use as a cahce
 uri = URI.parse(ENV["REDIS_URL"])
-@cache = Redis.new(:host => uri.host, :port => uri.port, :password => uri.password, :thread_safe => true)
+Resque.redis = Redis.new(:host => uri.host, :port => uri.port, :password => uri.password, :thread_safe => true)
 
-# This will mark a user as recently nagged.  TTL is how long the cache will hold the record
-def mark(status, user, ttl)
-  @cache.setex "#{status}:#{user}", ttl, "yes"
-end
-
-def check?(status,user)
-  if @cache.get("#{status}:#{user}") then
-    true
-  else
-    false
-  end
-end
 
 # this method has a side effects in the cache
-def notify?(user)
-  ret_val = false
-  if !check?("verified", user)
-    u = Contributor.first(:email => user)
-    if u
-      # the user has registered
-      # now test if they have verified
-      # if they have not verified, then send them a nag if they haven't already been nagged
-      # if they have accepted, then mark them in the cache
-      if u.date_accepted
-         mark("verified", user, 86400)
-      else
-        if !check?("nagged", user, 3600)
-           ret_val = true        
-           mark("nagged",user)
+def notify?(rec)
+  puts "\n\n #{rec.date_accepted.nil?} \n\n"
+  send_nag = true
+  if rec
+     # If they have a contributor record, check and see if they've accepted the agreement
+     if !rec.date_accepted.nil?
+       # if they have accepted the contributor record, do not send a nag
+       send_nag = false
+     else
+        # if they have a record but have not accepted, then
+        # send them a nag if we haven't nagged them in the last 2 days
+        if !rec.date_nagged || ((Date.today - rec.date_nagged).to_i > 2)
+          # If we've never nagged them, or it's been more than 2 days since the last nag
+          # then nag them and restart the clock
+          rec.date_nagged = Date.today
+          rec.save
+        else
+          # here, they have been sent a nag within the last 2 days, so just leave them alone
+          # For now.  mmmmwhahahahahahaha....
+          send_nag = false
         end
-      end
-    end
+     end   
   end
-  return ret_val
-end
-
+  return send_nag
+end  
       
 #
 # Email queue for sending notices
@@ -166,7 +157,7 @@ class CLAPushWorker
      authorsArray = msg["body"]["commits"].map { |hash| hash["author"] }
      log(@logger, @queue, process_id, "Contributors are #{authorsArray}")   
      authorsArray.each do |c|
-       log(@logger, @queue, process_id, "Sending email to #{c}")           
+       log(@logger, @queue, process_id, "Processing commit from #{c}")           
        m = {
          :email_src => 'docs/push_webhook_issue_text.md',
          :subject => "O'Reilly Media Contributor License Agreement",
@@ -174,8 +165,11 @@ class CLAPushWorker
          :payload => { :url => msg["body"]["repository"]["url"] || "missing repo"}
        }
        # send this user an email if they haven't been verified or nagged
-       if notify?(c.email)
+       if notify?(Contributor.first( :email => c["email"]))
+          log(@logger, @queue, process_id, "Sending notice to #{c['email']}")           
           job = EmailWorker.create(m)
+       else
+         log(@logger, @queue, process_id, "#{c['email']} has already registered")           
        end
     end
   end
@@ -216,12 +210,15 @@ class CLAPullWorker
           "owner_url" => msg["body"]["pull_request"]["head"]["repo"]["owner"]["url"]
        }
     }
-    log(@logger, @queue, process_id, "The payload for the template is #{dat}")
     # Pull out the template from the checklist repo on github and process the variables using mustache
-    message_body = Mustache.render($WEBHOOK_ISSUE_TEXT, dat).encode('utf-8', :invalid => :replace, :undef => :replace, :replace => '_')
-    log(@logger, @queue, process_id, "The message is #{message_body}")
-    @github_client.create_issue(dat["base"]["full_name"], "Contributor license is required", message_body)     
-    
+    log(@logger, @queue, process_id, "Processing request from #{msg['body']['sender']['login']}")
+    if notify?(Contributor.first(:github_handle => msg["body"]["sender"]["login"]))
+      log(@logger, @queue, process_id, "Sending notice to #{msg['body']['sender']['login']}")
+      message_body = Mustache.render($WEBHOOK_ISSUE_TEXT, dat).encode('utf-8', :invalid => :replace, :undef => :replace, :replace => '_')       
+      @github_client.create_issue(dat["base"]["full_name"], "Contributor license is required", message_body)     
+    else
+      log(@logger, @queue, process_id, "#{msg['body']['sender']['login']} has already registered.")
+    end
   end
 
 end

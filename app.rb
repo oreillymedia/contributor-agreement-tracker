@@ -73,7 +73,6 @@ class App < Sinatra::Base
   end
   
   post "/pull_validation_hook" do
-    puts params
     msg = {
       :body => JSON.parse(request.body.read)
     }
@@ -90,6 +89,7 @@ class App < Sinatra::Base
       clas.each do |cla|
          c = {
           :fullname => cla.fullname,
+          :github_handle => cla.github_handle,
           :date_invited => cla.date_invited,
           :date_accepted => cla.date_accepted,
           :confirmation_code => cla.confirmation_code
@@ -113,6 +113,7 @@ class App < Sinatra::Base
       u = Contributor.new
       u.fullname = params[:fullname]
       u.email = params[:email]
+      u.github_handle = params[:github_handle]
       u.date_invited = Date.today
       u.confirmation_code = confirmation_code
       u.save
@@ -144,7 +145,9 @@ class App < Sinatra::Base
          :to => u.email,
          :payload => {
              :fullname => u.fullname,
-             :email => u.email
+             :email => u.email,
+             :confirmation_code => u.confirmation_code,
+             :github_handle => u.github_handle
          }
        }
        job = EmailWorker.create(msg)

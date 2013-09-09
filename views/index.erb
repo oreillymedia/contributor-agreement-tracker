@@ -23,6 +23,13 @@
       <input class="span5" 
             id="email" name="email" size="30" 
             type="email" data-trigger="change" data-required="true" data-type="email" value="<%= data['email'] %>" />
+
+      <label class="down20" for="github_handle">GitHub Handle*</label>
+      <span class="help-block">
+	  If you are using O'Reilly Atlas, this should be the GitHub handle you use for Atlas. <a href="/faq">Learn more.</a>
+      </span>
+      <input class="span5" 
+            id="github_handle" name="github_handle" size="30" data-false="true" value="<%= data['github_handle'] %>" />
  
       <input type="submit" id="validate-contributor" span="4" class="btn medium green block down10" value="I agree to the CLA."</input>
 
