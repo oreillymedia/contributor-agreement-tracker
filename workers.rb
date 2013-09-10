@@ -33,14 +33,13 @@ Resque.redis = Redis.new(:host => uri.host, :port => uri.port, :password => uri.
 
 
 # this method has a side effects in the cache
-def notify?(rec)
-  puts "\n\n #{rec.date_accepted.nil?} \n\n"
-  send_nag = true
+def notify_user_action(rec)
+  action = "notify"
   if rec
      # If they have a contributor record, check and see if they've accepted the agreement
      if !rec.date_accepted.nil?
        # if they have accepted the contributor record, do not send a nag
-       send_nag = false
+       action = "none"
      else
         # if they have a record but have not accepted, then
         # send them a nag if we haven't nagged them in the last 2 days
@@ -49,14 +48,15 @@ def notify?(rec)
           # then nag them and restart the clock
           rec.date_nagged = Date.today
           rec.save
+          action = "nag"
         else
           # here, they have been sent a nag within the last 2 days, so just leave them alone
           # For now.  mmmmwhahahahahahaha....
-          send_nag = false
+          action = "none"
         end
      end   
   end
-  return send_nag
+  return action
 end  
       
 #
@@ -157,16 +157,26 @@ class CLAPushWorker
      authorsArray = msg["body"]["commits"].map { |hash| hash["author"] }
      log(@logger, @queue, process_id, "Contributors are #{authorsArray}")   
      authorsArray.each do |c|
-       log(@logger, @queue, process_id, "Processing commit from #{c}")           
-       m = {
-         :email_src => 'docs/push_webhook_issue_text.md',
-         :subject => "O'Reilly Media Contributor License Agreement",
-         :to => c["email"],
-         :payload => { :url => msg["body"]["repository"]["url"] || "missing repo"}
-       }
-       # send this user an email if they haven't been verified or nagged
-       if notify?(Contributor.first( :email => c["email"]))
-          log(@logger, @queue, process_id, "Sending notice to #{c['email']}")           
+       log(@logger, @queue, process_id, "Processing commit from #{c}") 
+       user = Contributor.first( :email => c["email"])
+       action =  notify_user_action(user)         
+       log(@logger, @queue, process_id, "Notification action is #{action}")
+       if action != "none"
+          log(@logger, @queue, process_id, "Sending notice to #{c['email']}")
+          document_source = 'docs/push_webhook_issue_text.md'
+          if action == "nag"
+            document_source = 'docs/push_webhook_issue_reminder_text.md'   
+          end        
+          m = {
+            :email_src => document_source,
+            :subject => "O'Reilly Media Contributor License Agreement",
+            :to => c["email"],
+            :payload => { 
+              :url => msg["body"]["repository"]["url"],
+              :confirmation_code => user.confirmation_code
+              }
+          }
+          # send this user an email if they haven't been verified or nagged
           job = EmailWorker.create(m)
        else
          log(@logger, @queue, process_id, "#{c['email']} has already registered")           
@@ -185,10 +195,13 @@ class CLAPullWorker
   @logger ||= Logger.new(STDOUT)   
   @github_client = Octokit::Client.new( :access_token => ENV["GITHUB_TOKEN"])
 
-  $WEBHOOK_ISSUE_TEXT = IO.read('docs/pull_webhook_issue_text.md')
-  
   def self.perform(process_id, msg)
+    # Pull out the template from the checklist repo on github and process the variables using mustache
+    log(@logger, @queue, process_id, "Processing request from #{msg['body']['sender']['login']}")
+    user = Contributor.first(:github_handle => msg["body"]["sender"]["login"])
+    action =  notify_user_action(user)         
     dat = {
+       "confirmation_code" => user.confirmation_code,
        "number" => msg["body"]["number"],
        "issue_url" => msg["body"]["pull_request"]["issue_url"],
        "sender" => msg["body"]["sender"]["login"],
@@ -210,11 +223,13 @@ class CLAPullWorker
           "owner_url" => msg["body"]["pull_request"]["head"]["repo"]["owner"]["url"]
        }
     }
-    # Pull out the template from the checklist repo on github and process the variables using mustache
-    log(@logger, @queue, process_id, "Processing request from #{msg['body']['sender']['login']}")
-    if notify?(Contributor.first(:github_handle => msg["body"]["sender"]["login"]))
+    if action != "none"
+      issue_text = IO.read('docs/pull_webhook_issue_text.md')
+      if action == "nag"
+        issue_text = IO.read('docs/pull_webhook_issue_reminder_text.md')
+      end 
       log(@logger, @queue, process_id, "Sending notice to #{msg['body']['sender']['login']}")
-      message_body = Mustache.render($WEBHOOK_ISSUE_TEXT, dat).encode('utf-8', :invalid => :replace, :undef => :replace, :replace => '_')       
+      message_body = Mustache.render(issue_text, dat).encode('utf-8', :invalid => :replace, :undef => :replace, :replace => '_')       
       @github_client.create_issue(dat["base"]["full_name"], "Contributor license is required", message_body)     
     else
       log(@logger, @queue, process_id, "#{msg['body']['sender']['login']} has already registered.")
