@@ -12,7 +12,6 @@ class Contributor
   property :confirmation_code, String
   property :date_invited, Date
   property :date_accepted, Date
-  property :date_nagged, Date
 
   validates_presence_of :fullname
   validates_presence_of :email
@@ -20,6 +19,14 @@ class Contributor
 
 end
 
+
+class Notification
+  include DataMapper::Resource
+  property :id, Serial
+  property :user, String, :length => 255
+  property :channel, String
+  property :date_sent, Date  
+end
 
 DataMapper.finalize
 DataMapper.auto_upgrade!

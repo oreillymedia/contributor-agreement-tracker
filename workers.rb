@@ -34,6 +34,7 @@ uri = URI.parse(ENV["REDIS_URL"])
 Resque.redis = Redis.new(:host => uri.host, :port => uri.port, :password => uri.password, :thread_safe => true)
 
 
+
 # this method has a side effects in the cache
 def notify_user_action(rec)
   action = "notify"
@@ -85,14 +86,13 @@ class EmailWorker
   
   def self.perform(process_id, msg)       
     log(@queue, process_id, "Attempting to send an email #{msg}")
-    email_body = IO.read(msg['email_src'])
     mail = Mail.deliver do
       to msg['to']
-      cc ENV["CLA_ALIAS"]
-      from ENV["CLA_ALIAS"]
+      cc msg['cc']
+      from msg['from']
       subject msg['subject']
       text_part do
-        body Mustache.render(email_body,msg['payload'])
+        body msg['body']
       end
     end
   end
@@ -149,42 +149,58 @@ class CLAPushWorker
 
   include Resque::Plugins::Status
   @queue = "cla_push_worker"
-  @github_client = Octokit::Client.new( :access_token => ENV["GITHUB_TOKEN"])
+
+  def send_email(to, subject, body)
+    job = EmailWorker.create({
+      "to" => to,
+      "from" => ENV["CLA_ALIAS"],
+      "cc" => ENV["CLA_ALIAS"],
+      "subject" => subject,
+      "body" => body
+    })
+  end 
+  
+  def notify_user(user_rec, msg)
+    notify = true
+    log(@queue, process_id, "notification testing for #{user_rec}")   
+    subject = "O'Reilly Media Contribution Agreement"
+    body = IO.read('docs/email_request.md')
+    payload = { "url" => msg["body"]["repository"]["url"] }
+    u = Contributor.find(:email => user_rec["email"])        
+    if u && u.date_accepted
+      # they've accepted the agreement, so we're all set
+      log(@queue, process_id, "#{user_rec} was found in contributors table")   
+      notify = false
+    else
+      n = Notification.find(:email => c["email"], :channel => "email")
+      if n && ((Date.today - n.date_sent).to_i > 2) 
+        email_data["subject"] = "Reminder about your O'Reilly Media contribution"
+        # if they've already started the process and just forgotten to click verify, then send them their link again
+        if u
+          message_body = IO.read('docs/email_reminder.md')
+          message_payload["confirmation_code"] = u.confirmation_code
+        end
+        n.destroy   # delete the current notification record
+      end
+    end               
+    # Now send the notice, if necessary
+    if notify
+      send_email(user_rec["email"], subject, Mustache.render(body, payload))
+      n = Notification.new
+      n.user  = user_rec["email"]
+      n.channel = "email"
+      n.date_sent = Date.today
+      n.save
+    end  
+  end
   
   def self.perform(process_id, msg)
     # get a list of all contributors
      authorsArray = msg["body"]["commits"].map { |hash| hash["author"] }
      log(@queue, process_id, "Contributors are #{authorsArray}")   
-     authorsArray.each do |c|
-       log(@queue, process_id, "Processing commit from #{c}") 
-       user = Contributor.first( :email => c["email"])
-       action =  notify_user_action(user)         
-       log(@queue, process_id, "Notification action is #{action}")
-       if action != "none"
-          log(@queue, process_id, "Sending notice to #{c['email']}")
-          document_source = 'docs/push_webhook_issue_text.md'
-          payload = { 
-            :url => msg["body"]["repository"]["url"] 
-          }
-          if action == "nag"
-            document_source = 'docs/push_webhook_issue_reminder_text.md'   
-            payload = { 
-              :url => msg["body"]["repository"]["url"],
-              :confirmation_code => user.confirmation_code
-            }
-          end        
-          m = {
-            :email_src => document_source,
-            :subject => "O'Reilly Media Contributor License Agreement",
-            :to => c["email"],
-            :payload => payload
-          }
-          # send this user an email if they haven't been verified or nagged
-          job = EmailWorker.create(m)
-       else
-         log(@queue, process_id, "#{c['email']} has already registered")           
-       end
-    end
+     authorsArray.each do |c|   
+        notify_user(c, msg)
+     end
   end
   
 end
