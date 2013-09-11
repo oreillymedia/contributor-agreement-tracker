@@ -164,17 +164,21 @@ class CLAPushWorker
        if action != "none"
           log(@logger, @queue, process_id, "Sending notice to #{c['email']}")
           document_source = 'docs/push_webhook_issue_text.md'
+          payload = { 
+            :url => msg["body"]["repository"]["url"] 
+          }
           if action == "nag"
             document_source = 'docs/push_webhook_issue_reminder_text.md'   
+            payload = { 
+              :url => msg["body"]["repository"]["url"],
+              :confirmation_code => user.confirmation_code
+            }
           end        
           m = {
             :email_src => document_source,
             :subject => "O'Reilly Media Contributor License Agreement",
             :to => c["email"],
-            :payload => { 
-              :url => msg["body"]["repository"]["url"],
-              :confirmation_code => user.confirmation_code
-              }
+            :payload => payload
           }
           # send this user an email if they haven't been verified or nagged
           job = EmailWorker.create(m)
@@ -201,7 +205,6 @@ class CLAPullWorker
     user = Contributor.first(:github_handle => msg["body"]["sender"]["login"])
     action =  notify_user_action(user)         
     dat = {
-       "confirmation_code" => user.confirmation_code,
        "number" => msg["body"]["number"],
        "issue_url" => msg["body"]["pull_request"]["issue_url"],
        "sender" => msg["body"]["sender"]["login"],
@@ -227,6 +230,7 @@ class CLAPullWorker
       issue_text = IO.read('docs/pull_webhook_issue_text.md')
       if action == "nag"
         issue_text = IO.read('docs/pull_webhook_issue_reminder_text.md')
+        dat["confirmation_code"] = user.confirmation_code
       end 
       log(@logger, @queue, process_id, "Sending notice to #{msg['body']['sender']['login']}")
       message_body = Mustache.render(issue_text, dat).encode('utf-8', :invalid => :replace, :undef => :replace, :replace => '_')       
