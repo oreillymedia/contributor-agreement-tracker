@@ -23,8 +23,10 @@ require './database.rb'
 #
 #   ssh -g -R 3000:127.0.0.1:3000 root@atlas-worker-staging.makerpress.com 
 
-def log(logger, queue, process_id, msg)
-  logger.info "#{queue} \t #{process_id} \t #{msg}"
+LOGGER ||= Logger.new(STDOUT)   
+
+def log(queue, process_id, msg)
+  LOGGER.info "#{queue} \t #{process_id} \t #{msg}"
 end
 
 # Get a hook to redis to use as a cahce
@@ -66,8 +68,7 @@ class EmailWorker
 
   include Resque::Plugins::Status
   @queue = "email_worker"
-  @logger ||= Logger.new(STDOUT)   
-    
+  
   
   # Configure the mailer
   Mail.defaults do
@@ -83,7 +84,7 @@ class EmailWorker
   
   
   def self.perform(process_id, msg)       
-    log(@logger, @queue, process_id, "Attempting to send an email #{msg}")
+    log(@queue, process_id, "Attempting to send an email #{msg}")
     email_body = IO.read(msg['email_src'])
     mail = Mail.deliver do
       to msg['to']
@@ -104,11 +105,10 @@ class AddWebhookWorker
 
   include Resque::Plugins::Status
   @queue = "webhook_worker"
-  @logger ||= Logger.new(STDOUT)   
   @github_client = Octokit::Client.new( :access_token => ENV["GITHUB_TOKEN"])
     
   def self.perform(process_id, msg)
-    log(@logger, @queue, process_id, "Attempting to add webhook #{msg} #{ENV['GITHUB_LOGIN']}")
+    log(@queue, process_id, "Attempting to add webhook #{msg} #{ENV['GITHUB_LOGIN']}")
     begin
       # Create an event for a push request
        @github_client.create_hook(
@@ -136,9 +136,9 @@ class AddWebhookWorker
             :active => true
           }
         )
-       log(@logger, @queue, process_id, "Created webhook")
+       log(@queue, process_id, "Created webhook")
     rescue Exception => e
-       log(@logger, @queue, process_id, "Could not connect to github API - #{e}")
+       log(@queue, process_id, "Could not connect to github API - #{e}")
        raise e
     end
   end
@@ -149,20 +149,19 @@ class CLAPushWorker
 
   include Resque::Plugins::Status
   @queue = "cla_push_worker"
-  @logger ||= Logger.new(STDOUT)   
   @github_client = Octokit::Client.new( :access_token => ENV["GITHUB_TOKEN"])
   
   def self.perform(process_id, msg)
     # get a list of all contributors
      authorsArray = msg["body"]["commits"].map { |hash| hash["author"] }
-     log(@logger, @queue, process_id, "Contributors are #{authorsArray}")   
+     log(@queue, process_id, "Contributors are #{authorsArray}")   
      authorsArray.each do |c|
-       log(@logger, @queue, process_id, "Processing commit from #{c}") 
+       log(@queue, process_id, "Processing commit from #{c}") 
        user = Contributor.first( :email => c["email"])
        action =  notify_user_action(user)         
-       log(@logger, @queue, process_id, "Notification action is #{action}")
+       log(@queue, process_id, "Notification action is #{action}")
        if action != "none"
-          log(@logger, @queue, process_id, "Sending notice to #{c['email']}")
+          log(@queue, process_id, "Sending notice to #{c['email']}")
           document_source = 'docs/push_webhook_issue_text.md'
           payload = { 
             :url => msg["body"]["repository"]["url"] 
@@ -183,7 +182,7 @@ class CLAPushWorker
           # send this user an email if they haven't been verified or nagged
           job = EmailWorker.create(m)
        else
-         log(@logger, @queue, process_id, "#{c['email']} has already registered")           
+         log(@queue, process_id, "#{c['email']} has already registered")           
        end
     end
   end
@@ -196,12 +195,11 @@ class CLAPullWorker
 
   include Resque::Plugins::Status
   @queue = "cla_pull_worker"
-  @logger ||= Logger.new(STDOUT)   
   @github_client = Octokit::Client.new( :access_token => ENV["GITHUB_TOKEN"])
 
   def self.perform(process_id, msg)
     # Pull out the template from the checklist repo on github and process the variables using mustache
-    log(@logger, @queue, process_id, "Processing request from #{msg['body']['sender']['login']}")
+    log(@queue, process_id, "Processing request from #{msg['body']['sender']['login']}")
     user = Contributor.first(:github_handle => msg["body"]["sender"]["login"])
     action =  notify_user_action(user)         
     dat = {
@@ -232,11 +230,11 @@ class CLAPullWorker
         issue_text = IO.read('docs/pull_webhook_issue_reminder_text.md')
         dat["confirmation_code"] = user.confirmation_code
       end 
-      log(@logger, @queue, process_id, "Sending notice to #{msg['body']['sender']['login']}")
+      log(@queue, process_id, "Sending notice to #{msg['body']['sender']['login']}")
       message_body = Mustache.render(issue_text, dat).encode('utf-8', :invalid => :replace, :undef => :replace, :replace => '_')       
       @github_client.create_issue(dat["base"]["full_name"], "Contributor license is required", message_body)     
     else
-      log(@logger, @queue, process_id, "#{msg['body']['sender']['login']} has already registered.")
+      log(@queue, process_id, "#{msg['body']['sender']['login']} has already registered.")
     end
   end
 
