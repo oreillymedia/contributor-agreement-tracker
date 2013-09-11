@@ -29,7 +29,7 @@ def log(queue, process_id, msg)
   LOGGER.info "#{queue} \t #{process_id} \t #{msg}"
 end
 
-# Get a hook to redis to use as a cahce
+# Get a hook to redis to use as a cache
 uri = URI.parse(ENV["REDIS_URL"])
 Resque.redis = Redis.new(:host => uri.host, :port => uri.port, :password => uri.password, :thread_safe => true)
 
