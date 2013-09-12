@@ -135,36 +135,52 @@ class CLAPushWorker
     })
   end 
   
-  def self.notify_user(user_rec, msg)
+  def self.notify_user(user, msg)
     notify = true
-    log(@queue, @process_id, "notification testing for #{user_rec}")   
+    log(@queue, @process_id, "notification testing for #{user}")   
     subject = "O'Reilly Media Contribution Agreement"
     body = IO.read('docs/email_request.md')
     payload = { "url" => msg["body"]["repository"]["url"] }
-    u = Contributor.first(:email => user_rec['email'])        
-    if u && u['date_accepted']
-      # they've accepted the agreement, so we're all set
-      log(@queue, @process_id, "#{user_rec} has accepted the contributor agreement on #{u.date_accepted}")   
-      notify = false
-    else 
-      log(@queue, @process_id, "User has not accepted the agreement. Checking if we need to notify him or her")   
-      n = Notification.first(:user => user_rec["email"], :channel => "email")
-      if n && ((Date.today - n.date_sent).to_i > 2) 
-         email_data["subject"] = "Reminder about your O'Reilly Media contribution"
-         # if they've already started the process and just forgotten to click verify, then send them their link again
-         if u
-           message_body = IO.read('docs/email_reminder.md')
-           message_payload["confirmation_code"] = u.confirmation_code
-         end
-         n.destroy   # delete the current notification record
+    c = Contributor.first(:email => user)    
+    n = Notification.first(:user => user)
+    if c
+      log(@queue, @process_id, "Contributor record exists for #{user}")   
+      if c.date_accepted
+        log(@queue, process_id, "#{user} has accepted the contributor agreement")   
+        notify = false
+      else
+        log(@queue, @process_id, "#{user} has not accepted the contributor agreement")   
+        if n
+          if (Date.today - n.date_sent).to_i < 3
+            log(@queue, @process_id, "#{user} has been notified in the last 3 days")   
+            notify = false
+          else
+            log(@queue, @process_id, "#{user} has not been notified in the last 3 days")   
+            subject = "Reminder about your O'Reilly Media contribution"
+            body = IO.read('docs/email_reminder.md')
+            payload["confirmation_code"] = c.confirmation_code
+            n.destroy
+          end  
+        end
       end
-    end               
-    # Now send the notice, if necessary
+    else
+      log(@queue, @process_id, "Contributor record does not exist for #{user}")   
+      if n
+        if (Date.today - n.date_sent).to_i < 3
+          log(@queue, @process_id, "#{user} has been notified in the last 3 days")   
+          notify = false
+        else
+          log(@queue, @process_id, "#{user} has not been notified in the last 3 days")   
+          n.destroy
+        end          
+      end
+    end
+   # Now send the notice, if necessary
     if notify
-      self.send_email(user_rec["email"], subject, Mustache.render(body, payload))
+      log(@queue, @process_id, "Sending #{user} a nag!")             
+      self.send_email(user, subject, Mustache.render(body, payload))
       n = Notification.new
-      n.user  = user_rec["email"]
-      n.channel = "email"
+      n.user  = user
       n.date_sent = Date.today
       n.save
     end  
@@ -176,7 +192,7 @@ class CLAPushWorker
      authorsArray = msg["body"]["commits"].map { |hash| hash["author"] }
      log(@queue, process_id, "Contributors are #{authorsArray}")   
      authorsArray.each do |c|   
-        self.notify_user(c, msg)
+        self.notify_user(c["email"], msg)
      end
   end
   
