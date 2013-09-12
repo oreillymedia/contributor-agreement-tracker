@@ -116,15 +116,14 @@ class App < Sinatra::Base
       u.github_handle = params[:github_handle]
       u.date_invited = Date.today
       u.confirmation_code = confirmation_code
-      u.save
-  
-      msg = {
-        :email_src => 'docs/verification_email.md',
-        :subject => "Please confirm your O'Reilly Media Contributor Agreement",
-        :to => u.email,
-        :payload => u
-      }
-      job = EmailWorker.create(msg)
+      u.save      
+      job = EmailWorker.create({
+        "to" => u.email,
+        "from" => ENV["CLA_ALIAS"],
+        "cc" => ENV["CLA_ALIAS"],
+        "subject" => "Please confirm your O'Reilly Media Contributor Agreement",
+        "body" => Mustache.render(IO.read('docs/verification_email.md'), u)
+      })
       erb :confirm, :locals => {:email => params[:email]}      
     rescue Exception => e
       puts e
@@ -139,18 +138,19 @@ class App < Sinatra::Base
        u.date_accepted = Date.today
        u.save
        # Send an email
-       msg = {
-         :email_src => 'docs/confirmation_email.md',
-         :subject => "Your O'Reilly Media Contributor Agreement confirmation",
-         :to => u.email,
-         :payload => {
+       payload = {
              :fullname => u.fullname,
              :email => u.email,
              :confirmation_code => u.confirmation_code,
              :github_handle => u.github_handle
-         }
        }
-       job = EmailWorker.create(msg)
+       job = EmailWorker.create({
+         "to" => u.email,
+         "from" => ENV["CLA_ALIAS"],
+         "cc" => ENV["CLA_ALIAS"],
+         "subject" => "Please confirm your O'Reilly Media Contributor Agreement",
+         "body" => Mustache.render(IO.read('docs/confirmation_email.md'), payload)
+       })       
      else
        flash[:error] = "This record could not be found.  Please try registering again."
      end      

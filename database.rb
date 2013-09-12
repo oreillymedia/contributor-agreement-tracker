@@ -24,7 +24,6 @@ class Notification
   include DataMapper::Resource
   property :id, Serial
   property :user, String, :length => 255
-  property :channel, String
   property :date_sent, Date  
 end
 

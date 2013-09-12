@@ -35,32 +35,6 @@ Resque.redis = Redis.new(:host => uri.host, :port => uri.port, :password => uri.
 
 
 
-# this method has a side effects in the cache
-def notify_user_action(rec)
-  action = "notify"
-  if rec
-     # If they have a contributor record, check and see if they've accepted the agreement
-     if !rec.date_accepted.nil?
-       # if they have accepted the contributor record, do not send a nag
-       action = "none"
-     else
-        # if they have a record but have not accepted, then
-        # send them a nag if we haven't nagged them in the last 2 days
-        if !rec.date_nagged || ((Date.today - rec.date_nagged).to_i > 2)
-          # If we've never nagged them, or it's been more than 2 days since the last nag
-          # then nag them and restart the clock
-          rec.date_nagged = Date.today
-          rec.save
-          action = "nag"
-        else
-          # here, they have been sent a nag within the last 2 days, so just leave them alone
-          # For now.  mmmmwhahahahahahaha....
-          action = "none"
-        end
-     end   
-  end
-  return action
-end  
       
 #
 # Email queue for sending notices
@@ -149,8 +123,9 @@ class CLAPushWorker
 
   include Resque::Plugins::Status
   @queue = "cla_push_worker"
+  @process_id = ""
 
-  def send_email(to, subject, body)
+  def self.send_email(to, subject, body)
     job = EmailWorker.create({
       "to" => to,
       "from" => ENV["CLA_ALIAS"],
@@ -160,32 +135,33 @@ class CLAPushWorker
     })
   end 
   
-  def notify_user(user_rec, msg)
+  def self.notify_user(user_rec, msg)
     notify = true
-    log(@queue, process_id, "notification testing for #{user_rec}")   
+    log(@queue, @process_id, "notification testing for #{user_rec}")   
     subject = "O'Reilly Media Contribution Agreement"
     body = IO.read('docs/email_request.md')
     payload = { "url" => msg["body"]["repository"]["url"] }
-    u = Contributor.find(:email => user_rec["email"])        
-    if u && u.date_accepted
+    u = Contributor.first(:email => user_rec['email'])        
+    if u && u['date_accepted']
       # they've accepted the agreement, so we're all set
-      log(@queue, process_id, "#{user_rec} was found in contributors table")   
+      log(@queue, @process_id, "#{user_rec} has accepted the contributor agreement on #{u.date_accepted}")   
       notify = false
-    else
-      n = Notification.find(:email => c["email"], :channel => "email")
+    else 
+      log(@queue, @process_id, "User has not accepted the agreement. Checking if we need to notify him or her")   
+      n = Notification.first(:user => user_rec["email"], :channel => "email")
       if n && ((Date.today - n.date_sent).to_i > 2) 
-        email_data["subject"] = "Reminder about your O'Reilly Media contribution"
-        # if they've already started the process and just forgotten to click verify, then send them their link again
-        if u
-          message_body = IO.read('docs/email_reminder.md')
-          message_payload["confirmation_code"] = u.confirmation_code
-        end
-        n.destroy   # delete the current notification record
+         email_data["subject"] = "Reminder about your O'Reilly Media contribution"
+         # if they've already started the process and just forgotten to click verify, then send them their link again
+         if u
+           message_body = IO.read('docs/email_reminder.md')
+           message_payload["confirmation_code"] = u.confirmation_code
+         end
+         n.destroy   # delete the current notification record
       end
     end               
     # Now send the notice, if necessary
     if notify
-      send_email(user_rec["email"], subject, Mustache.render(body, payload))
+      self.send_email(user_rec["email"], subject, Mustache.render(body, payload))
       n = Notification.new
       n.user  = user_rec["email"]
       n.channel = "email"
@@ -196,10 +172,11 @@ class CLAPushWorker
   
   def self.perform(process_id, msg)
     # get a list of all contributors
+    @process_id = process_id
      authorsArray = msg["body"]["commits"].map { |hash| hash["author"] }
      log(@queue, process_id, "Contributors are #{authorsArray}")   
      authorsArray.each do |c|   
-        notify_user(c, msg)
+        self.notify_user(c, msg)
      end
   end
   
@@ -217,7 +194,7 @@ class CLAPullWorker
     # Pull out the template from the checklist repo on github and process the variables using mustache
     log(@queue, process_id, "Processing request from #{msg['body']['sender']['login']}")
     user = Contributor.first(:github_handle => msg["body"]["sender"]["login"])
-    action =  notify_user_action(user)         
+#    action =  notify_user_action(user)         
     dat = {
        "number" => msg["body"]["number"],
        "issue_url" => msg["body"]["pull_request"]["issue_url"],
@@ -240,6 +217,7 @@ class CLAPullWorker
           "owner_url" => msg["body"]["pull_request"]["head"]["repo"]["owner"]["url"]
        }
     }
+    action = "none"
     if action != "none"
       issue_text = IO.read('docs/pull_webhook_issue_text.md')
       if action == "nag"
