@@ -33,8 +33,47 @@ end
 uri = URI.parse(ENV["REDIS_URL"])
 Resque.redis = Redis.new(:host => uri.host, :port => uri.port, :password => uri.password, :thread_safe => true)
 
-
-
+# 
+# This fuction returns whether or not a given user should get a notification.  Return value invclede
+#   none -- do not send a notice
+#   request -- send a requst, which means it's the first time we're contracting the user
+#   remind -- send a reminder, which happens after the initial contact
+#
+def notify_user(user, queue, process_id)
+  action = "request"
+  log(queue, process_id, "notification testing for #{user}")   
+  c = Contributor.first(:email => user)    
+  n = Notification.first(:user => user)
+  if c
+    log(queue, process_id, "Contributor record exists for #{user}")   
+    if c.date_accepted
+      log(queue, process_id, "#{user} has accepted the contributor agreement")   
+      action = "none"
+    else
+      log(queue, process_id, "#{user} has not accepted the contributor agreement")   
+      if n
+        if (Date.today - n.date_sent).to_i < 3
+          log(queue, process_id, "#{user} has been notified in the last 3 days")   
+          action = "none"
+        else
+          log(queue, process_id, "#{user} has not been notified in the last 3 days")   
+          action = "remind"
+        end  
+      end
+    end
+  else
+    log(queue, process_id, "Contributor record does not exist for #{user}")   
+    if n
+      if (Date.today - n.date_sent).to_i < 3
+        log(queue, process_id, "#{user} has been notified in the last 3 days")   
+        action = "none"
+      else
+        log(queue, process_id, "#{user} has not been notified in the last 3 days")   
+      end          
+    end
+  end
+  return action
+end
       
 #
 # Email queue for sending notices
@@ -123,76 +162,59 @@ class CLAPushWorker
 
   include Resque::Plugins::Status
   @queue = "cla_push_worker"
-  @process_id = ""
-
-  def self.send_email(to, subject, body)
-    job = EmailWorker.create({
-      "to" => to,
-      "from" => ENV["CLA_ALIAS"],
-      "cc" => ENV["CLA_ALIAS"],
-      "subject" => subject,
-      "body" => body
-    })
-  end 
-  
-  def self.notify_user(user, msg)
-    notify = true
-    log(@queue, @process_id, "notification testing for #{user}")   
-    subject = "O'Reilly Media Contribution Agreement"
-    body = IO.read('docs/email_request.md')
-    payload = { "url" => msg["body"]["repository"]["url"] }
-    c = Contributor.first(:email => user)    
-    n = Notification.first(:user => user)
-    if c
-      log(@queue, @process_id, "Contributor record exists for #{user}")   
-      if c.date_accepted
-        log(@queue, process_id, "#{user} has accepted the contributor agreement")   
-        notify = false
-      else
-        log(@queue, @process_id, "#{user} has not accepted the contributor agreement")   
-        if n
-          if (Date.today - n.date_sent).to_i < 3
-            log(@queue, @process_id, "#{user} has been notified in the last 3 days")   
-            notify = false
-          else
-            log(@queue, @process_id, "#{user} has not been notified in the last 3 days")   
-            subject = "Reminder about your O'Reilly Media contribution"
-            body = IO.read('docs/email_reminder.md')
-            payload["confirmation_code"] = c.confirmation_code
-            n.destroy
-          end  
-        end
-      end
-    else
-      log(@queue, @process_id, "Contributor record does not exist for #{user}")   
-      if n
-        if (Date.today - n.date_sent).to_i < 3
-          log(@queue, @process_id, "#{user} has been notified in the last 3 days")   
-          notify = false
-        else
-          log(@queue, @process_id, "#{user} has not been notified in the last 3 days")   
-          n.destroy
-        end          
-      end
-    end
-   # Now send the notice, if necessary
-    if notify
-      log(@queue, @process_id, "Sending #{user} a nag!")             
-      self.send_email(user, subject, Mustache.render(body, payload))
-      n = Notification.new
-      n.user  = user
-      n.date_sent = Date.today
-      n.save
-    end  
-  end
   
   def self.perform(process_id, msg)
+       
     # get a list of all contributors
     @process_id = process_id
      authorsArray = msg["body"]["commits"].map { |hash| hash["author"] }
      log(@queue, process_id, "Contributors are #{authorsArray}")   
      authorsArray.each do |c|   
-        self.notify_user(c["email"], msg)
+       # Set the message to a request to register
+        subject = "O'Reilly Media Contribution Agreement"
+        body = IO.read('docs/email_request.md')
+        payload = { 
+          "url" => msg["body"]["repository"]["url"] 
+        }       
+        
+        action = notify_user(c["email"], @queue, process_id)
+        
+        # If the action require a reminder, then make the necessary changes
+        if action == "remind"
+          subject = "Reminder about your O'Reilly Media contribution"
+          body = IO.read('docs/email_reminder.md')
+          payload = { 
+            "url" => msg["body"]["repository"]["url"], 
+            "confirmation_code" => c.confirmation_code
+          }
+         end
+        
+         if action != "none"
+           log(@queue, @process_id, "Sending c['email'] a nag!")  
+           # If we're sending a notification, destroy any existing notification records (if any)
+           n = Notification.first(:user => c["email"])
+           if n
+             n.destroy
+           end    
+           #
+           # queue up an email notification
+           #       
+           job = EmailWorker.create({
+             "to" => c["email"],
+             "from" => ENV["CLA_ALIAS"],
+             "cc" => ENV["CLA_ALIAS"],
+             "subject" => subject,
+             "body" => Mustache.render(body, payload)
+           })         
+           #
+           # Update the notification list to record when we last contacted the user
+           #  
+           n = Notification.new
+           n.user  = c["email"]
+           n.date_sent = Date.today
+           n.save
+        end
+        
      end
   end
   
