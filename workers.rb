@@ -33,47 +33,7 @@ end
 uri = URI.parse(ENV["REDIS_URL"])
 Resque.redis = Redis.new(:host => uri.host, :port => uri.port, :password => uri.password, :thread_safe => true)
 
-# 
-# This fuction returns whether or not a given user should get a notification.  Return value invclede
-#   none -- do not send a notice
-#   request -- send a requst, which means it's the first time we're contracting the user
-#   remind -- send a reminder, which happens after the initial contact
-#
-def notify_user(user, queue, process_id)
-  action = "request"
-  log(queue, process_id, "notification testing for #{user}")   
-  c = Contributor.first(:email => user)    
-  n = Notification.first(:user => user)
-  if c
-    log(queue, process_id, "Contributor record exists for #{user}")   
-    if c.date_accepted
-      log(queue, process_id, "#{user} has accepted the contributor agreement")   
-      action = "none"
-    else
-      log(queue, process_id, "#{user} has not accepted the contributor agreement")   
-      if n
-        if (Date.today - n.date_sent).to_i < 3
-          log(queue, process_id, "#{user} has been notified in the last 3 days")   
-          action = "none"
-        else
-          log(queue, process_id, "#{user} has not been notified in the last 3 days")   
-          action = "remind"
-        end  
-      end
-    end
-  else
-    log(queue, process_id, "Contributor record does not exist for #{user}")   
-    if n
-      if (Date.today - n.date_sent).to_i < 3
-        log(queue, process_id, "#{user} has been notified in the last 3 days")   
-        action = "none"
-      else
-        log(queue, process_id, "#{user} has not been notified in the last 3 days")   
-      end          
-    end
-  end
-  return action
-end
+
       
 #
 # Email queue for sending notices
@@ -98,7 +58,7 @@ class EmailWorker
   
   
   def self.perform(process_id, msg)       
-    log(@queue, process_id, "Attempting to send an email #{msg}")
+    log(@queue, process_id, "sending an email to #{msg['to']}")
     mail = Mail.deliver do
       to msg['to']
       cc msg['cc']
@@ -157,6 +117,50 @@ class AddWebhookWorker
   end
 end
 
+
+# 
+# This fuction returns whether or not a given user should get a notification.  Return value invclede
+#   none -- do not send a notice
+#   request -- send a requst, which means it's the first time we're contracting the user
+#   remind -- send a reminder, which happens after the initial contact
+#
+def notify_user(user, queue, process_id)
+  action = "request"
+  log(queue, process_id, "notification testing for #{user}")   
+  c = Contributor.first(:email => user)    
+  n = Notification.first(:user => user)
+  if c
+    log(queue, process_id, "Contributor record exists for #{user}")   
+    if c.date_accepted
+      log(queue, process_id, "#{user} has accepted the contributor agreement")   
+      action = "none"
+    else
+      log(queue, process_id, "#{user} has not accepted the contributor agreement")   
+      if n
+        if (Date.today - n.date_sent).to_i < 3
+          log(queue, process_id, "#{user} has been notified in the last 3 days")   
+          action = "none"
+        else
+          log(queue, process_id, "#{user} has not been notified in the last 3 days")   
+          action = "remind"
+        end  
+      end
+    end
+  else
+    log(queue, process_id, "Contributor record does not exist for #{user}")   
+    if n
+      if (Date.today - n.date_sent).to_i < 3
+        log(queue, process_id, "#{user} has been notified in the last 3 days")   
+        action = "none"
+      else
+        log(queue, process_id, "#{user} has not been notified in the last 3 days")   
+      end          
+    end
+  end
+  return action
+end
+
+
 # This worker responds to a pull request sent to a repo and sends a CLS
 class CLAPushWorker
 
@@ -183,6 +187,7 @@ class CLAPushWorker
         if action == "remind"
           subject = "Reminder about your O'Reilly Media contribution"
           body = IO.read('docs/email_reminder.md')
+          c = Contributor.first(:email => user)    
           payload = { 
             "url" => msg["body"]["repository"]["url"], 
             "confirmation_code" => c.confirmation_code
@@ -190,7 +195,7 @@ class CLAPushWorker
          end
         
          if action != "none"
-           log(@queue, @process_id, "Sending c['email'] a nag!")  
+           log(@queue, @process_id, "Sending #{c['email']} a nag!")  
            # If we're sending a notification, destroy any existing notification records (if any)
            n = Notification.first(:user => c["email"])
            if n
@@ -213,8 +218,7 @@ class CLAPushWorker
            n.user  = c["email"]
            n.date_sent = Date.today
            n.save
-        end
-        
+        end       
      end
   end
   
@@ -230,10 +234,16 @@ class CLAPullWorker
 
   def self.perform(process_id, msg)
     # Pull out the template from the checklist repo on github and process the variables using mustache
-    log(@queue, process_id, "Processing request from #{msg['body']['sender']['login']}")
-    user = Contributor.first(:github_handle => msg["body"]["sender"]["login"])
-#    action =  notify_user_action(user)         
-    dat = {
+    log(@queue, process_id, "Processing pull request from #{msg['body']['sender']['login']}")
+    
+    # we only care about pull requests being opened
+    if msg["body"]["action"] != "opened"
+      return "none"
+    end
+    
+    subject = "O'Reilly Media Contribution Agreement"
+    body = IO.read('docs/issue_request.md')
+    payload = {
        "number" => msg["body"]["number"],
        "issue_url" => msg["body"]["pull_request"]["issue_url"],
        "sender" => msg["body"]["sender"]["login"],
@@ -255,18 +265,26 @@ class CLAPullWorker
           "owner_url" => msg["body"]["pull_request"]["head"]["repo"]["owner"]["url"]
        }
     }
-    action = "none"
+
+    action = notify_user(payload["sender"], @queue, process_id)
+    
     if action != "none"
-      issue_text = IO.read('docs/pull_webhook_issue_text.md')
-      if action == "nag"
-        issue_text = IO.read('docs/pull_webhook_issue_reminder_text.md')
-        dat["confirmation_code"] = user.confirmation_code
-      end 
       log(@queue, process_id, "Sending notice to #{msg['body']['sender']['login']}")
-      message_body = Mustache.render(issue_text, dat).encode('utf-8', :invalid => :replace, :undef => :replace, :replace => '_')       
-      @github_client.create_issue(dat["base"]["full_name"], "Contributor license is required", message_body)     
-    else
-      log(@queue, process_id, "#{msg['body']['sender']['login']} has already registered.")
+      # If we're sending a notification, destroy any existing notification records (if any)
+      n = Notification.first(:user => payload["sender"])
+      if n
+        n.destroy
+      end          
+      message_body = Mustache.render(body, payload)
+      @github_client.create_issue(payload["base"]["full_name"], subject, Mustache.render(body,payload))       
+      #
+      # Update the notification list to record when we last contacted the user
+      #  
+      n = Notification.new
+      n.user  = payload["sender"]
+      n.date_sent = Date.today
+      n.save
+         
     end
   end
 
