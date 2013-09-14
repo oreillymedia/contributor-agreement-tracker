@@ -124,11 +124,15 @@ end
 #   request -- send a requst, which means it's the first time we're contracting the user
 #   remind -- send a reminder, which happens after the initial contact
 #
-def notify_user(user, queue, process_id)
+def notify_user(user, user_type, queue, process_id)
   action = "request"
   log(queue, process_id, "notification testing for #{user}")   
   c = Contributor.first(:email => user)    
   n = Notification.first(:user => user)
+  if user_type == "github"
+    c = Contributor.first(:github_handle => user)    
+  end
+      
   if c
     log(queue, process_id, "Contributor record exists for #{user}")   
     if c.date_accepted
@@ -181,7 +185,7 @@ class CLAPushWorker
           "url" => msg["body"]["repository"]["url"] 
         }       
         
-        action = notify_user(c["email"], @queue, process_id)
+        action = notify_user(c["email"], "email", @queue, process_id)
         
         # If the action require a reminder, then make the necessary changes
         if action == "remind"
@@ -266,7 +270,7 @@ class CLAPullWorker
        }
     }
 
-    action = notify_user(payload["sender"], @queue, process_id)
+    action = notify_user(payload["sender"], "github", @queue, process_id)
     
     if action != "none"
       log(@queue, process_id, "Sending notice to #{msg['body']['sender']['login']}")
