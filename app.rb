@@ -109,16 +109,20 @@ class App < Sinatra::Base
 
       # Now store data as a persistent cookie so that their info appears each time      
       response.set_cookie 'data', {:value=> params.to_json, :max_age => "2592000"}
-
-      u = Contributor.new
+     
+      u = Contributor.first(:email => params[:email])
+      if !u
+         u = Contributor.new
+      end   
+            
       u.fullname = params[:fullname]
       u.email = params[:email]
       u.github_handle = params[:github_handle]
       u.date_invited = Date.today
       u.confirmation_code = confirmation_code
-      u.save      
+      u.save   
       job = EmailWorker.create({
-        "to" => u.email,
+        "to" => params[:email],
         "from" => ENV["CLA_ALIAS"],
         "cc" => ENV["CLA_ALIAS"],
         "subject" => "Please confirm your O'Reilly Media Contributor Agreement",
