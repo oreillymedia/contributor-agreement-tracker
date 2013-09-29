@@ -126,6 +126,8 @@ end
 #
 def notify_user(user, user_type, queue, process_id)
   action = "request"
+  # make sure comparisons are all case-insensitive!
+  user = user.downcase  
   log(queue, process_id, "notification testing for #{user}")   
   c = Contributor.first(:email => user)    
   n = Notification.first(:user => user)
@@ -178,6 +180,9 @@ class CLAPushWorker
      authorsArray = msg["body"]["commits"].map { |hash| hash["author"] }
      log(@queue, process_id, "Contributors are #{authorsArray}")   
      authorsArray.each do |c|   
+       # downcase the users email address
+       c["email"] = c["email"].downcase
+       
        # Set the message to a request to register
         subject = "O'Reilly Media Contribution Agreement"
         body = IO.read('docs/email_request.md')
@@ -191,7 +196,7 @@ class CLAPushWorker
         if action == "remind"
           subject = "Reminder about your O'Reilly Media contribution"
           body = IO.read('docs/email_reminder.md')
-          c = Contributor.first(:email => user)    
+          c = Contributor.first(:email => c["email"])    
           payload = { 
             "url" => msg["body"]["repository"]["url"], 
             "confirmation_code" => c.confirmation_code
@@ -270,7 +275,7 @@ class CLAPullWorker
        }
     }
 
-    action = notify_user(payload["sender"], "github", @queue, process_id)
+    action = notify_user(payload["sender"].downcase, "github", @queue, process_id)
     
     if action != "none"
       log(@queue, process_id, "Sending notice to #{msg['body']['sender']['login']}")

@@ -110,14 +110,14 @@ class App < Sinatra::Base
       # Now store data as a persistent cookie so that their info appears each time      
       response.set_cookie 'data', {:value=> params.to_json, :max_age => "2592000"}
      
-      u = Contributor.first(:email => params[:email])
+      u = Contributor.first(:email => params[:email].downcase)
       if !u
          u = Contributor.new
       end   
             
       u.fullname = params[:fullname]
-      u.email = params[:email]
-      u.github_handle = params[:github_handle]
+      u.email = params[:email].downcase
+      u.github_handle = params[:github_handle].downcase
       u.date_invited = Date.today
       u.confirmation_code = confirmation_code
       u.save   
